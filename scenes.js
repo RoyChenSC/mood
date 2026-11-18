@@ -93,6 +93,36 @@ const Scenes = (() => {
   }
 
   // 新月：外弧 + 內弧組成的路徑（不依賴背景色遮擋）
+  // 陽光：大太陽 + 緩慢旋轉的光芒
+  function sunburst(x, y, rad) {
+    let rays = '';
+    for (let i = 0; i < 12; i++) {
+      const a = (i * Math.PI) / 6;
+      rays += `M${n1(x + Math.cos(a) * rad * 1.35)} ${n1(y + Math.sin(a) * rad * 1.35)} L${n1(x + Math.cos(a) * rad * 1.8)} ${n1(y + Math.sin(a) * rad * 1.8)} `;
+    }
+    return `<circle cx="${x}" cy="${y}" r="${rad * 2.6}" ${F('sun', ';opacity:.18')}/>`
+      + `<path class="spin" d="${rays}" style="fill:none;stroke:var(--ray);stroke-width:3;stroke-linecap:round"/>`
+      + `<circle cx="${x}" cy="${y}" r="${rad}" ${F('sun')}/>`;
+  }
+
+  // 向日葵：莖、葉、花瓣（虛線圓環）與花心
+  function sunflower(x, y, k) {
+    return `<path d="M${x} ${y} V${n1(y - 22 * k)}" style="fill:none;stroke:var(--stem);stroke-width:${n1(1.6 * k)}"/>`
+      + `<ellipse cx="${n1(x + 4 * k)}" cy="${n1(y - 9 * k)}" rx="${n1(4 * k)}" ry="${n1(1.8 * k)}" ${F('stem')}/>`
+      + `<circle cx="${x}" cy="${n1(y - 24 * k)}" r="${n1(5.2 * k)}" style="fill:none;stroke:var(--petal);stroke-width:${n1(3.4 * k)};stroke-dasharray:${n1(2.4 * k)} ${n1(1.2 * k)}"/>`
+      + `<circle cx="${x}" cy="${n1(y - 24 * k)}" r="${n1(3.6 * k)}" ${F('seed')}/>`;
+  }
+
+  // 會左右緩慢飄動的雲（外層 g 負責動畫，避免覆蓋雲朵本身的 transform）
+  const drift = (x, y, k, dur, delay) =>
+    `<g class="drift" style="animation-duration:${dur}s;animation-delay:-${delay}s">${cloud(x, y, k)}</g>`;
+
+  // 風箏：菱形 + 十字骨架 + 彎曲尾巴
+  const kite = (x, y) =>
+    `<g class="sway"><path d="M${x} ${y} L${x + 11} ${y + 13} L${x} ${y + 30} L${x - 11} ${y + 13}Z" ${F('kite')}/>`
+    + `<path d="M${x} ${y} V${y + 30} M${x - 11} ${y + 13} H${x + 11}" style="fill:none;stroke:#fff;stroke-width:1;opacity:.8"/>`
+    + `<path d="M${x} ${y + 30} q-7 9 0 17 t0 17" style="fill:none;stroke:var(--kite);stroke-width:1.3"/></g>`;
+
   const moon = (x, y, rad) =>
     `<circle cx="${x}" cy="${y}" r="${rad * 2.2}" ${F('moon', ';opacity:.1')}/><path d="M${x} ${y - rad} A${rad} ${rad} 0 1 0 ${x} ${y + rad} A${n1(rad * 0.42)} ${rad} 0 1 1 ${x} ${y - rad}Z" ${F('moon')}/>`;
 
@@ -103,9 +133,6 @@ const Scenes = (() => {
     `<g transform="translate(${x} ${y - 30})"><rect y="10" width="30" height="20" ${F('barn')}/><path d="M-3 12 L15 -1 L33 12Z" ${F('roof')}/><path d="M11 30 V19 H19 V30" style="fill:none;stroke:#fff;stroke-width:1.6;opacity:.85"/></g>`;
   const tree = (x, y) =>
     `<rect x="${x - 1.5}" y="${y - 12}" width="3" height="12" ${F('roof')}/><circle cx="${x}" cy="${y - 18}" r="9" ${F('tree')}/>`;
-  const birds = (x, y) =>
-    `<path d="M${x} ${y} q5 -5 10 0 q5 -5 10 0 M${x + 28} ${y - 10} q4 -4 8 0 q4 -4 8 0" style="fill:none;stroke:var(--muted);stroke-width:1.4;opacity:.7"/>`;
-
   function fence(x0, x1, y) {
     let s = `<path d="M${x0} ${y - 6} H${x1} M${x0} ${y - 2} H${x1}`;
     for (let x = x0; x <= x1; x += 13) s += ` M${x} ${y - 10} V${y + 2}`;
@@ -113,8 +140,6 @@ const Scenes = (() => {
   }
 
   const BUILD = {
-    warm: () => ({ deco: '', ground: '' }),
-
     forest: () => {
       const r = rng(7);
       return {
@@ -127,6 +152,16 @@ const Scenes = (() => {
       };
     },
 
+    bluesky: () => ({
+      deco: drift(55, 42, 1.1, 18, 0) + drift(215, 26, 0.8, 22, 6) + drift(335, 96, 0.95, 20, 11)
+        + drift(130, 120, 0.6, 26, 3) + drift(40, 175, 0.55, 24, 15) + kite(352, 50),
+      ground: hill('M-10 130 Q90 108 200 124 T410 116 V200 H-10Z', 'far')
+        + tree(70, 128) + tree(88, 131)
+        + hill('M-10 158 Q120 136 250 152 T410 146 V200 H-10Z', 'mid')
+        + tree(330, 152)
+        + hill('M-10 184 Q150 168 280 182 T410 176 V200 H-10Z', 'near'),
+    }),
+
     maple: () => {
       const r = rng(23);
       return {
@@ -136,6 +171,31 @@ const Scenes = (() => {
           + hill('M-10 166 Q100 150 210 162 T410 156 V200 H-10Z', 'mid')
           + maples(r, 196, 7, 38, 50, ['leaf1', 'leaf2', 'leaf3'])
           + hill('M-10 190 Q120 180 230 188 T410 184 V200 H-10Z', 'near'),
+      };
+    },
+
+    sunshine: () => ({
+      deco: sunburst(345, 52, 20) + cloud(70, 40, 0.8) + cloud(230, 30, 0.55),
+      ground: hill('M-10 124 Q80 102 180 118 T410 110 V200 H-10Z', 'far')
+        + hill('M-10 146 Q110 126 230 140 T410 134 V200 H-10Z', 'mid')
+        + [20, 58, 96, 134, 172, 228, 266, 304, 342, 380].map((x, i) => sunflower(x, 150 + (i % 3) * 3, 1.25)).join('')
+        + hill('M-10 176 Q140 160 270 174 T410 168 V200 H-10Z', 'near')
+        + [5, 50, 95, 140, 185, 235, 280, 325, 370, 412].map((x, i) => sunflower(x, 188 + (i % 2) * 4, 1.6)).join(''),
+    }),
+
+    glacier: () => {
+      const r = rng(31);
+      return {
+        deco: sun(352, 46, 15) + cloud(70, 36, 0.8) + cloud(240, 26, 0.55),
+        ground: ridge(r, 138, 4, 30, 62, 'far', true)
+          + `<rect x="-10" y="148" width="420" height="60" ${F('near')}/>`
+          + hill('M-10 150 L20 126 L45 132 L70 114 L100 124 L130 108 L160 121 L190 112 L220 128 L250 122 L272 150Z', 'ice2')
+          + hill('M-10 150 L20 138 L45 142 L70 132 L100 138 L130 128 L160 136 L190 130 L220 140 L250 136 L272 150Z', 'mid')
+          + '<path d="M45 132 L50 150 M100 124 L96 150 M160 121 L165 150 M220 128 L216 150" style="fill:none;stroke:var(--ice);stroke-width:1.2;opacity:.8"/>'
+          + waves(160, 1.6) + waves(176, 1.4)
+          + hill('M300 160 L318 151 L340 153 L354 161Z', 'ice')
+          + hill('M86 182 L100 175 L116 177 L122 184Z', 'ice')
+          + hill('M200 192 L210 187 L222 188 L226 193Z', 'ice'),
       };
     },
 
@@ -166,18 +226,6 @@ const Scenes = (() => {
       };
     },
 
-    mountain: () => {
-      const r = rng(11);
-      return {
-        deco: sun(352, 46, 17) + cloud(60, 34, 0.8) + cloud(250, 26, 0.6) + birds(300, 70),
-        ground: ridge(r, 140, 4, 40, 80, 'far')
-          + ridge(r, 165, 5, 25, 50, 'mid')
-          + hill('M190 150 Q170 170 150 200 H262 Q230 172 214 150Z', 'river')
-          + hill('M-10 168 Q70 158 150 176 Q160 190 150 200 H-10Z', 'near')
-          + hill('M262 200 Q242 182 262 170 Q330 156 410 164 V200Z', 'near'),
-      };
-    },
-
     snow: () => {
       const r = rng(5);
       return {
@@ -200,22 +248,24 @@ const Scenes = (() => {
   };
 
   const LIST = [
-    { id: 'warm', name: '暖陽', desc: '跟隨系統深淺色' },
-    { id: 'forest', name: '森林', desc: '清新綠意' },
+    { id: 'forest', name: '森林', desc: '清新綠意（預設）' },
+    { id: 'sunshine', name: '陽光', desc: '明亮向日葵' },
+    { id: 'bluesky', name: '藍天白雲', desc: '晴空與風箏' },
     { id: 'maple', name: '楓葉林', desc: '秋日紅葉' },
     { id: 'beach', name: '海灘', desc: '海風與陽光' },
     { id: 'desert', name: '沙漠', desc: '溫暖沙丘' },
-    { id: 'starry', name: '星空', desc: '靜謐夜晚' },
-    { id: 'mountain', name: '山川', desc: '遠山與河流' },
+    { id: 'glacier', name: '冰川', desc: '冰河與浮冰' },
     { id: 'snow', name: '雪山', desc: '純淨雪景' },
     { id: 'country', name: '鄉村', desc: '田園小屋' },
+    { id: 'starry', name: '星空', desc: '靜謐夜晚（深色）' },
   ];
+  const DEFAULT = 'forest';
 
   function svg(id) {
-    const s = (BUILD[id] || BUILD.warm)();
+    const s = (BUILD[id] || BUILD[DEFAULT])();
     return (s.deco ? `<svg class="deco" viewBox="0 0 400 240" preserveAspectRatio="xMidYMin slice" aria-hidden="true">${s.deco}</svg>` : '')
       + (s.ground ? `<svg class="ground" viewBox="0 0 400 200" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${s.ground}</svg>` : '');
   }
 
-  return { list: LIST, svg };
+  return { list: LIST, svg, DEFAULT };
 })();

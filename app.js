@@ -346,18 +346,18 @@ $('#rangeSeg').addEventListener('click', (ev) => {
 const STYLE_KEY = 'mood-style';
 
 function getStyle() {
-  let s = 'warm';
-  try { s = localStorage.getItem(STYLE_KEY) || 'warm'; } catch (e) { /* 讀不到就用預設 */ }
-  return Scenes.list.some((t) => t.id === s) ? s : 'warm';
+  let s = Scenes.DEFAULT;
+  try { s = localStorage.getItem(STYLE_KEY) || Scenes.DEFAULT; } catch (e) { /* 讀不到就用預設 */ }
+  // 已移除的主題（暖陽、山川）或無效值 → 回到預設森林
+  return Scenes.list.some((t) => t.id === s) ? s : Scenes.DEFAULT;
 }
 
 function applyStyle(id) {
   const root = document.documentElement;
-  if (id === 'warm') delete root.dataset.style;
-  else root.dataset.style = id;
+  root.dataset.style = id;
   $('#bgfx').innerHTML = Scenes.svg(id);
   const sky = getComputedStyle(root).getPropertyValue('--sky1').trim();
-  $('meta[name="theme-color"]').setAttribute('content', sky || '#FFFBF7');
+  $('meta[name="theme-color"]').setAttribute('content', sky || '#D9ECD6');
   $$('#themeGrid .theme-card').forEach((b) => b.classList.toggle('on', b.dataset.s === id));
 }
 
@@ -375,14 +375,13 @@ $('#themeGrid').addEventListener('click', (ev) => {
   applyStyle(b.dataset.s);
   toast(`已切換為「${b.querySelector('.tc-name').textContent.trim()}」`);
 });
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyStyle(getStyle()));
 
 function renderSettings() {
   $('#customTags').innerHTML = data.customTags.length
     ? data.customTags.map((t, i) => `<button class="chip" data-i="${i}">${esc(t)}<span class="x">✕</span></button>`).join('')
     : '<span class="note-text" style="padding:0">在「今天」頁按「＋ 自訂」即可新增標籤</span>';
   const total = Object.keys(data.entries).length;
-  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.2`;
+  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.4`;
 }
 
 $('#customTags').addEventListener('click', (ev) => {

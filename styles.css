@@ -1,17 +1,3 @@
-:root, [data-style="warm"] {
-  --bg: #FFFBF7;
-  --sky1: var(--bg);
-  --sky2: var(--bg);
-  --glow: #FFE6D6;
-  --surface: #FFFFFF;
-  --surface-2: #FFF1E7;
-  --text: #2B2724;
-  --muted: #8F867E;
-  --line: #F2E7DD;
-  --accent: #FF7A59;
-  --shadow: 0 1px 2px rgba(255, 120, 80, .06), 0 8px 24px rgba(255, 120, 80, .08);
-  color-scheme: light;
-}
 :root {
   --danger: #E5484D;
   --m1: #8B8CF0;
@@ -22,29 +8,23 @@
   --radius: 20px;
 }
 
-/* 暖陽主題在系統深色模式下自動變暗 */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-style]) {
-    --bg: #141416;
-    --glow: #2A1E1A;
-    --surface: #1F1F22;
-    --surface-2: #2A2A2F;
-    --text: #F2EFEA;
-    --muted: #9A948D;
-    --line: #313136;
-    --accent: #FF8A6B;
-    --shadow: none;
-    color-scheme: dark;
-  }
-}
-
 /* ---------- 風景主題 ---------- */
-[data-style="forest"] {
+/* 森林同時是預設主題（尚未套用 data-style 前也使用這組配色） */
+:root, [data-style="forest"] {
   --bg: #F1F7EF; --sky1: #D9ECD6; --sky2: #F6FAF3; --glow: #FFF6D6;
   --surface: rgba(255, 255, 255, .84); --surface-2: #E6F0E3;
   --text: #1F2E24; --muted: #6C8070; --line: #DAE7D6; --accent: #3E8E5E;
   --shadow: 0 1px 2px rgba(30, 70, 40, .05), 0 8px 24px rgba(30, 70, 40, .08);
   --far: #C3DCC2; --mid: #8DBA97; --near: #5B926D; --sun: #FFE7A3; --cloud: #fff;
+  color-scheme: light;
+}
+[data-style="bluesky"] {
+  --bg: #F2F8FF; --sky1: #A7D6FA; --sky2: #EEF7FF; --glow: #FFFFFF;
+  --surface: rgba(255, 255, 255, .86); --surface-2: #E4F0FB;
+  --text: #142A40; --muted: #5C7690; --line: #D5E6F5; --accent: #1F6FC4;
+  --shadow: 0 1px 2px rgba(20, 80, 150, .05), 0 8px 24px rgba(20, 80, 150, .09);
+  --far: #C2E5B6; --mid: #97D08B; --near: #6BB866; --tree: #4E9E4E; --roof: #7A5A3A;
+  --kite: #FF6B6B; --cloud: #fff;
   color-scheme: light;
 }
 [data-style="maple"] {
@@ -80,12 +60,22 @@
   --far: #1A1F4D; --mid: #141940; --near: #0B0F2C; --moon: #F7F1D0;
   color-scheme: dark;
 }
-[data-style="mountain"] {
-  --bg: #F3F8FC; --sky1: #D3E5F4; --sky2: #F7FAFD; --glow: #FFF4DA;
-  --surface: rgba(255, 255, 255, .84); --surface-2: #E6EEF6;
-  --text: #1C2B3A; --muted: #6B7F93; --line: #DAE5EF; --accent: #2F78B7;
-  --shadow: 0 1px 2px rgba(30, 60, 100, .05), 0 8px 24px rgba(30, 60, 100, .08);
-  --far: #BACFE3; --mid: #8BA7C2; --near: #6A8E78; --river: #CFE6F6; --sun: #FFE3A1; --cloud: #fff;
+[data-style="sunshine"] {
+  --bg: #FFFBEA; --sky1: #FFEFA8; --sky2: #FFFDF2; --glow: #FFE680;
+  --surface: rgba(255, 255, 255, .86); --surface-2: #FFF3C7;
+  --text: #3A2E10; --muted: #8A7744; --line: #F4E6B5; --accent: #E8890C;
+  --shadow: 0 1px 2px rgba(180, 120, 0, .06), 0 8px 24px rgba(180, 120, 0, .1);
+  --far: #D3EAA2; --mid: #A9D56E; --near: #82C04C; --sun: #FFC83D; --ray: #FFB52E;
+  --petal: #FFC21F; --seed: #7A4A1E; --stem: #5E9E3A; --cloud: #fff;
+  color-scheme: light;
+}
+[data-style="glacier"] {
+  --bg: #EEF8FA; --sky1: #CBEDF5; --sky2: #F4FBFC; --glow: #FFFFFF;
+  --surface: rgba(255, 255, 255, .85); --surface-2: #E0F1F5;
+  --text: #13303A; --muted: #5C7E89; --line: #D2E8EE; --accent: #1A97AE;
+  --shadow: 0 1px 2px rgba(20, 100, 120, .05), 0 8px 24px rgba(20, 100, 120, .09);
+  --far: #BFE0EA; --mid: #9AD3E2; --near: #3C9DB4; --ice: #FFFFFF; --ice2: #E3F6FA;
+  --cap: #FFFFFF; --sun: #FFF1B8; --cloud: #fff;
   color-scheme: light;
 }
 [data-style="snow"] {
@@ -125,7 +115,13 @@
   85% { opacity: .9; }
   100% { transform: translate(18px, 250px) rotate(320deg); opacity: 0; }
 }
-@media (prefers-reduced-motion: reduce) { .twinkle, .flake, .leaf { animation: none; } }
+.spin { animation: spin 40s linear infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.drift { animation: drift 20s ease-in-out infinite alternate; }
+@keyframes drift { from { transform: translateX(-28px); } to { transform: translateX(28px); } }
+.sway { animation: sway 4s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 0; }
+@keyframes sway { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+@media (prefers-reduced-motion: reduce) { .twinkle, .flake, .leaf, .spin, .drift, .sway { animation: none; } }
 
 /* 風景主題下，導覽列更透明，讓底部風景透出來 */
 :root[data-style] .tabbar { background: color-mix(in srgb, var(--bg) 50%, transparent); }

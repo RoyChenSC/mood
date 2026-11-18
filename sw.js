@@ -1,5 +1,5 @@
-// 離線快取：先回傳快取內容，同時在背景更新（下次開啟即為新版）
-const CACHE = 'mood-diary-v3';
+// 離線快取：有網路時一律抓最新版（並更新快取），沒網路時才使用快取
+const CACHE = 'mood-diary-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -28,12 +28,14 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
   e.respondWith(
-    caches.open(CACHE).then(async (cache) => {
-      const hit = await cache.match(req, { ignoreSearch: true });
-      const net = fetch(req)
-        .then((res) => { if (res.ok) cache.put(req, res.clone()); return res; })
-        .catch(() => hit);
-      return hit || net;
-    })
+    fetch(req, { cache: 'no-cache' })
+      .then((res) => {
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+        }
+        return res;
+      })
+      .catch(() => caches.match(req, { ignoreSearch: true }))
   );
 });
