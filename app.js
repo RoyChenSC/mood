@@ -343,12 +343,46 @@ $('#rangeSeg').addEventListener('click', (ev) => {
 });
 
 /* ================= 設定 ================= */
+const STYLE_KEY = 'mood-style';
+
+function getStyle() {
+  let s = 'warm';
+  try { s = localStorage.getItem(STYLE_KEY) || 'warm'; } catch (e) { /* 讀不到就用預設 */ }
+  return Scenes.list.some((t) => t.id === s) ? s : 'warm';
+}
+
+function applyStyle(id) {
+  const root = document.documentElement;
+  if (id === 'warm') delete root.dataset.style;
+  else root.dataset.style = id;
+  $('#bgfx').innerHTML = Scenes.svg(id);
+  const sky = getComputedStyle(root).getPropertyValue('--sky1').trim();
+  $('meta[name="theme-color"]').setAttribute('content', sky || '#FFFBF7');
+  $$('#themeGrid .theme-card').forEach((b) => b.classList.toggle('on', b.dataset.s === id));
+}
+
+$('#themeGrid').innerHTML = Scenes.list.map((t) => `
+  <button class="theme-card" data-s="${t.id}" data-style="${t.id}" aria-label="${t.name}主題">
+    <span class="tc-scene">${Scenes.svg(t.id)}</span>
+    <span class="tc-name"><i></i>${t.name}</span>
+    <span class="tc-desc">${t.desc}</span>
+  </button>`).join('');
+
+$('#themeGrid').addEventListener('click', (ev) => {
+  const b = ev.target.closest('.theme-card');
+  if (!b) return;
+  try { localStorage.setItem(STYLE_KEY, b.dataset.s); } catch (e) { /* 無法儲存時僅本次生效 */ }
+  applyStyle(b.dataset.s);
+  toast(`已切換為「${b.querySelector('.tc-name').textContent.trim()}」`);
+});
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyStyle(getStyle()));
+
 function renderSettings() {
   $('#customTags').innerHTML = data.customTags.length
     ? data.customTags.map((t, i) => `<button class="chip" data-i="${i}">${esc(t)}<span class="x">✕</span></button>`).join('')
     : '<span class="note-text" style="padding:0">在「今天」頁按「＋ 自訂」即可新增標籤</span>';
   const total = Object.keys(data.entries).length;
-  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.0`;
+  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.2`;
 }
 
 $('#customTags').addEventListener('click', (ev) => {
@@ -454,6 +488,7 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('pagehide', saveNote);
 
 /* ================= 啟動 ================= */
+applyStyle(getStyle());
 renderToday();
 
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});

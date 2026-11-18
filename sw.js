@@ -1,9 +1,10 @@
 // 離線快取：先回傳快取內容，同時在背景更新（下次開啟即為新版）
-const CACHE = 'mood-diary-v1';
+const CACHE = 'mood-diary-v3';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
+  './scenes.js',
   './app.js',
   './manifest.webmanifest',
   './icons/icon-192.png',

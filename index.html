@@ -5,8 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>心情日記</title>
 <meta name="description" content="簡潔的每日心情紀錄">
-<meta name="theme-color" content="#F6F3EE" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#141416" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FFFBF7">
+<script>
+  // 在畫面繪製前套用主題，避免閃爍
+  try {
+    var st = localStorage.getItem('mood-style');
+    if (st && st !== 'warm') document.documentElement.dataset.style = st;
+  } catch (e) {}
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -17,6 +23,7 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<div id="bgfx" aria-hidden="true"></div>
 <main>
   <!-- 今天 -->
   <section id="view-today" class="view active">
@@ -97,6 +104,11 @@
   <!-- 設定 -->
   <section id="view-settings" class="view">
     <h2 class="page-title">設定</h2>
+    <div class="list-title">主題風格</div>
+    <div class="list pad">
+      <div class="theme-grid" id="themeGrid"></div>
+    </div>
+
     <div class="list-title">資料</div>
     <div class="list">
       <button class="row" id="btnExport">
@@ -151,6 +163,7 @@
 
 <div id="toast" class="toast" role="status"></div>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
+<script src="scenes.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
