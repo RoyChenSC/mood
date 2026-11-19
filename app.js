@@ -639,7 +639,7 @@ function renderSettings() {
   $('#exportSub').textContent = ago < 0 ? '尚未備份過 · 存成 JSON 檔，可存到「檔案」或 iCloud'
     : `上次備份：${ago === 0 ? '今天' : `${ago} 天前`}`;
   const total = Object.keys(data.entries).length;
-  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.13`;
+  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.14`;
 }
 
 $('#customTags').addEventListener('click', (ev) => {
@@ -799,7 +799,8 @@ window.addEventListener('pagehide', () => { saveNote(); saveWeek(); });
 // - 在 Chrome 等其他瀏覽器（手機預設瀏覽器不是 Safari 時，LINE 會用它開）：按鈕直接叫出 Safari，或在原瀏覽器加入主畫面
 // 預覽用：網址加 ?guide=safari／safari26／line／chrome
 const SHARE_SVG = '<svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M8 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-2"/></svg>';
-const APP_URL = 'https://roychensc.github.io/mood/';
+const MENU_SVG = '<svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h9"/></svg>';
+const APP_URL ='https://roychensc.github.io/mood/';
 
 function initInstallGuide() {
   const ua = navigator.userAgent;
@@ -830,7 +831,8 @@ function initInstallGuide() {
     // Chrome／Edge／Firefox（iOS 16.4 起也能加入主畫面）：手機預設瀏覽器不是 Safari 時，LINE 會用它們開
     chrome: [`點網址旁邊的${SHARE_SVG}<b>「分享」</b>`, '往上滑，點<b>「加入主畫面」</b>', '點右上角<b>「新增」</b>或<b>「加入」</b>'],
     safari: [`點最下面中間的${SHARE_SVG}<b>「分享」</b>`, '往上滑，點<b>「加入主畫面」</b>', '點右上角<b>「新增」</b>'],
-    safari26: ['點右下角的<b>「⋯」</b>（三個點）', `點${SHARE_SVG}<b>「分享」</b>`, '往上滑，點<b>「加入主畫面」</b>', '點右上角<b>「新增」</b>或<b>「加入」</b>'],
+    // Safari 26：網址列左邊的「☰」是選單（有些設定是右下角的「⋯」）
+    safari26: [`點下面網址<b>左邊的${MENU_SVG}</b><small>沒有的話，點右下角「⋯」</small>`,`點${SHARE_SVG}<b>「分享」</b>`, '往上滑，點<b>「加入主畫面」</b>', '點右上角<b>「新增」</b>或<b>「加入」</b>'],
   };
   if (!STEPS[mode]) return;
   const notSafari = mode === 'line' || mode === 'chrome';
@@ -839,7 +841,7 @@ function initInstallGuide() {
   $('#igSafari').hidden = !notSafari;
   $('#igLead').hidden = !notSafari;
   const arrow = $('#igArrow');
-  arrow.setAttribute('class', 'ig-arrow ' + (mode === 'safari' ? 'center' : 'right'));   // SVG 不能用 className
+  arrow.setAttribute('class', 'ig-arrow ' + (mode === 'safari' ? 'center' : 'menu'));   // SVG 不能用 className
   arrow.toggleAttribute('hidden', notSafari);   // LINE、Chrome 的按鈕位置不固定，不畫箭頭
   $('#installGuide').hidden = false;
 
