@@ -81,6 +81,26 @@
   --sun: #FFF1B8; --cloud: #fff;
   color-scheme: light;
 }
+[data-style="cat"] {
+  --bg: #FFF5F8; --sky1: #FFDCE8; --sky2: #FFF8FB; --glow: #FFFFFF;
+  --surface: rgba(255, 255, 255, .86); --surface-2: #FCE8EF;
+  --text: #3A2430; --muted: #977484; --line: #F5DCE6; --accent: #E0607E;
+  --shadow: 0 1px 2px rgba(160, 60, 90, .05), 0 8px 24px rgba(160, 60, 90, .08);
+  --far: #F9D3DF; --mid: #F2B9CB; --near: #E59AB2;
+  --fur: #F6B26B; --fur2: #DE8A3A; --cream: #FFF4E6; --pink: #FF8FAB; --ink: #4A3328;
+  --yarn: #9C8CF0; --cushion: #B9A8F5; --cloud: #fff;
+  color-scheme: light;
+}
+[data-style="dog"] {
+  --bg: #F3F9FF; --sky1: #BFE3FA; --sky2: #FFF9EC; --glow: #FFF4D2;
+  --surface: rgba(255, 255, 255, .86); --surface-2: #FFF1D9;
+  --text: #33281A; --muted: #87735A; --line: #F1E4CC; --accent: #D9892B;
+  --shadow: 0 1px 2px rgba(150, 100, 30, .05), 0 8px 24px rgba(150, 100, 30, .08);
+  --far: #C9E6A6; --mid: #A2D277; --near: #7DBA52;
+  --fur: #E6A955; --fur2: #C98632; --cream: #F8DDA8; --ink: #2E2118; --tongue: #FF7F8E;
+  --collar: #E8554E; --ball: #D7EB3C; --sun: #FFD25E; --cloud: #fff;
+  color-scheme: light;
+}
 [data-style="sunshine"] {
   --bg: #FFFBEA; --sky1: #FFEFA8; --sky2: #FFFDF2; --glow: #FFE680;
   --surface: rgba(255, 255, 255, .86); --surface-2: #FFF3C7;
@@ -153,7 +173,19 @@
   88% { opacity: 1; }
   100% { opacity: 0; transform: translate(-110px, 52px); }
 }
-@media (prefers-reduced-motion: reduce) { .twinkle, .flake, .leaf, .spin, .drift, .sway, .flow, .mist, .shoot { animation: none; } }
+/* 喵喵／汪星人：搖尾巴（以尾巴根部為中心）、眨眼、飄愛心 */
+.wag { animation: wag 1.6s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 0% 100%; }
+.wag.fast { animation-duration: .45s; }
+@keyframes wag { from { transform: rotate(-10deg); } to { transform: rotate(12deg); } }
+.blink { animation: blink 5s infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(.1); } }
+.floaty { animation: floaty 10s ease-in-out infinite; }
+@keyframes floaty {
+  0% { transform: translateY(20px); opacity: 0; }
+  20%, 70% { opacity: .9; }
+  100% { transform: translateY(-40px); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .twinkle, .flake, .leaf, .spin, .drift, .sway, .flow, .mist, .shoot, .wag, .blink, .floaty { animation: none; } }
 
 /* 地面已移到導覽列上方，導覽列改用接近不透明的底色，不再蓋住風景 */
 :root[data-style] .tabbar { background: color-mix(in srgb, var(--bg) 94%, transparent); }

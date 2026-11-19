@@ -635,7 +635,7 @@ function renderSettings() {
     ? data.customTags.map((t, i) => `<button class="chip" data-i="${i}">${esc(t)}<span class="x">✕</span></button>`).join('')
     : '<span class="note-text" style="padding:0">在「今天」頁按「＋ 自訂」即可新增標籤</span>';
   const total = Object.keys(data.entries).length;
-  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.8`;
+  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.9`;
 }
 
 $('#customTags').addEventListener('click', (ev) => {

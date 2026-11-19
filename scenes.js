@@ -179,6 +179,80 @@ const Scenes = (() => {
     return s;
   }
 
+  // 往上飄的愛心
+  const heart = (x, y, k, dur, delay, v) =>
+    `<g class="floaty" style="animation-duration:${dur}s;animation-delay:-${delay}s"><path transform="translate(${x} ${y}) scale(${k})" d="M0 3 C-6 -2 -4 -8 0 -5 C4 -8 6 -2 0 3Z" ${F(v)}/></g>`;
+  // 肉球腳印
+  const paw = (x, y, k, rot, v, op = '.35') =>
+    `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${k})" ${F(v, `;opacity:${op}`)}><ellipse cx="0" cy="3" rx="5" ry="4"/><circle cx="-5" cy="-3" r="1.9"/><circle cx="-1.8" cy="-5.6" r="1.9"/><circle cx="1.8" cy="-5.6" r="1.9"/><circle cx="5" cy="-3" r="1.9"/></g>`;
+
+  // 可愛的貓：正面坐姿（x, y 為腳底中心）
+  function cat(x, y, k) {
+    const t = `translate(${x} ${y}) scale(${k})`;
+    return `<g transform="${t}">`
+      // 尾巴（會擺動）
+      + '<path class="wag" d="M16 -6 C40 -6 44 -30 34 -44" style="fill:none;stroke:var(--fur);stroke-width:8;stroke-linecap:round"/>'
+      // 身體與胸前白毛
+      + `<ellipse cx="0" cy="-22" rx="22" ry="24" ${F('fur')}/>`
+      + `<ellipse cx="0" cy="-18" rx="11" ry="15" ${F('cream')}/>`
+      // 前腳
+      + `<ellipse cx="-9" cy="-2" rx="7" ry="4.5" ${F('cream')}/><ellipse cx="9" cy="-2" rx="7" ry="4.5" ${F('cream')}/>`
+      // 耳朵
+      + `<path d="M-21 -66 L-17 -90 L-4 -76Z M21 -66 L17 -90 L4 -76Z" ${F('fur')}/>`
+      + `<path d="M-17 -70 L-15 -84 L-8 -76Z M17 -70 L15 -84 L8 -76Z" ${F('pink')}/>`
+      // 頭
+      + `<ellipse cx="0" cy="-60" rx="25" ry="21" ${F('fur')}/>`
+      + '<path d="M-6 -80 V-72 M0 -81 V-71 M6 -80 V-72" style="fill:none;stroke:var(--fur2);stroke-width:2.2;stroke-linecap:round"/>'
+      + `<ellipse cx="0" cy="-52" rx="10" ry="7" ${F('cream')}/>`
+      // 眼睛（含反光）、腮紅、鼻子、嘴巴、鬍鬚
+      + `<g class="blink"><ellipse cx="-9" cy="-62" rx="3.4" ry="4" ${F('ink')}/><ellipse cx="9" cy="-62" rx="3.4" ry="4" ${F('ink')}/>`
+      + '<circle cx="-8" cy="-63.5" r="1.2" style="fill:#fff"/><circle cx="10" cy="-63.5" r="1.2" style="fill:#fff"/></g>'
+      + `<ellipse cx="-16" cy="-53" rx="4.5" ry="2.6" ${F('pink', ';opacity:.7')}/><ellipse cx="16" cy="-53" rx="4.5" ry="2.6" ${F('pink', ';opacity:.7')}/>`
+      + `<path d="M-2.2 -55.5 H2.2 L0 -53Z" ${F('pink')}/>`
+      + '<path d="M-4 -50.5 q2 2.4 4 0 q2 2.4 4 0" style="fill:none;stroke:var(--ink);stroke-width:1.1"/>'
+      + '<path d="M-12 -53 L-27 -56 M-12 -51 L-27 -50 M12 -53 L27 -56 M12 -51 L27 -50" style="fill:none;stroke:var(--ink);stroke-width:.7;opacity:.5"/>'
+      + '</g>';
+  }
+  // 毛線球
+  const yarn = (x, y, r) =>
+    `<circle cx="${x}" cy="${y}" r="${r}" ${F('yarn')}/>`
+    + `<path d="M${x - r * 0.8} ${y - r * 0.4} Q${x} ${y - r * 0.1} ${x + r * 0.7} ${y - r * 0.6} M${x - r * 0.9} ${y + r * 0.2} Q${x} ${y + r * 0.3} ${x + r * 0.9} ${y - r * 0.1} M${x - r * 0.5} ${y + r * 0.8} Q${x + r * 0.2} ${y + r * 0.5} ${x + r * 0.6} ${y + r * 0.7}" style="fill:none;stroke:#fff;stroke-width:1.2;opacity:.6"/>`
+    + `<path d="M${x - r} ${y + r * 0.6} q-12 6 -22 2" style="fill:none;stroke:var(--yarn);stroke-width:1.4"/>`;
+
+  // 黃金獵犬：正面坐姿、垂耳、吐舌頭、搖尾巴（x, y 為腳底中心）
+  function golden(x, y, k) {
+    const t = `translate(${x} ${y}) scale(${k})`;
+    return `<g transform="${t}">`
+      + '<path class="wag fast" d="M20 -14 C40 -18 50 -36 46 -54" style="fill:none;stroke:var(--fur);stroke-width:9;stroke-linecap:round"/>'
+      + '<path class="wag fast" d="M24 -16 C40 -20 47 -34 44 -48" style="fill:none;stroke:var(--fur2);stroke-width:2;stroke-linecap:round;opacity:.5"/>'
+      + `<ellipse cx="0" cy="-26" rx="26" ry="28" ${F('fur')}/>`
+      + `<ellipse cx="0" cy="-24" rx="13" ry="17" ${F('cream')}/>`
+      // 前腳
+      + `<rect x="-15" y="-22" width="10" height="22" rx="5" ${F('fur')}/><rect x="5" y="-22" width="10" height="22" rx="5" ${F('fur')}/>`
+      + `<ellipse cx="-10" cy="-1" rx="7" ry="3.6" ${F('cream')}/><ellipse cx="10" cy="-1" rx="7" ry="3.6" ${F('cream')}/>`
+      // 項圈與名牌
+      + `<path d="M-17 -46 Q0 -38 17 -46" style="fill:none;stroke:var(--collar);stroke-width:4.5"/><circle cx="0" cy="-38" r="3.4" ${F('sun')}/>`
+      // 頭與垂耳
+      + `<ellipse cx="0" cy="-66" rx="22" ry="20" ${F('fur')}/>`
+      + `<ellipse cx="-21" cy="-60" rx="8" ry="15" transform="rotate(14 -21 -60)" ${F('fur2')}/>`
+      + `<ellipse cx="21" cy="-60" rx="8" ry="15" transform="rotate(-14 21 -60)" ${F('fur2')}/>`
+      + `<ellipse cx="0" cy="-56" rx="12" ry="9" ${F('cream')}/>`
+      // 眼睛、眉毛、鼻子、嘴巴、舌頭
+      + `<g class="blink"><circle cx="-8.5" cy="-70" r="3.2" ${F('ink')}/><circle cx="8.5" cy="-70" r="3.2" ${F('ink')}/>`
+      + '<circle cx="-7.6" cy="-71.2" r="1.1" style="fill:#fff"/><circle cx="9.4" cy="-71.2" r="1.1" style="fill:#fff"/></g>'
+      + '<path d="M-12 -77 q3 -2.5 6 -1 M12 -77 q-3 -2.5 -6 -1" style="fill:none;stroke:var(--fur2);stroke-width:1.6"/>'
+      + `<ellipse cx="0" cy="-60" rx="4.6" ry="3.2" ${F('ink')}/>`
+      + `<path d="M-3.6 -50.5 Q0 -40 3.6 -50.5Z" ${F('tongue')}/>`
+      + '<path d="M0 -57 V-53 M-6 -52 Q-3 -49 0 -53 Q3 -49 6 -52" style="fill:none;stroke:var(--ink);stroke-width:1.2"/>'
+      + '</g>';
+  }
+  const tennis = (x, y, r) =>
+    `<circle cx="${x}" cy="${y}" r="${r}" ${F('ball')}/><path d="M${x - r * 0.75} ${y - r * 0.65} Q${x} ${y} ${x - r * 0.75} ${y + r * 0.65} M${x + r * 0.75} ${y - r * 0.65} Q${x} ${y} ${x + r * 0.75} ${y + r * 0.65}" style="fill:none;stroke:#fff;stroke-width:1.2"/>`;
+  const bone = (x, y, k, rot) =>
+    `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${k})" style="fill:#fff"><rect x="-9" y="-2.2" width="18" height="4.4" rx="2"/><circle cx="-9" cy="-2.6" r="3"/><circle cx="-9" cy="2.6" r="3"/><circle cx="9" cy="-2.6" r="3"/><circle cx="9" cy="2.6" r="3"/></g>`;
+  const daisy = (x, y) =>
+    `<circle cx="${x}" cy="${y}" r="3.4" style="fill:none;stroke:#fff;stroke-width:2.4;stroke-dasharray:1.6 1"/><circle cx="${x}" cy="${y}" r="1.6" ${F('sun')}/>`;
+
   const BUILD = {
     forest: () => {
       const r = rng(7);
@@ -294,6 +368,30 @@ const Scenes = (() => {
       };
     },
 
+    cat: () => ({
+      deco: paw(40, 40, 1.4, -20, 'fur2') + paw(78, 70, 1.2, 10, 'fur2', '.25') + paw(300, 30, 1.2, 25, 'pink')
+        + heart(350, 60, 1.6, 9, 0, 'pink') + heart(250, 90, 1.1, 11, 4, 'pink') + heart(150, 50, 1.2, 10, 7, 'fur2')
+        + drift(190, 24, 0.6, 24, 5),
+      ground: hill('M-10 132 Q90 110 200 126 T410 120 V200 H-10Z', 'far')
+        + hill('M-10 160 Q120 140 250 156 T410 150 V200 H-10Z', 'mid')
+        + yarn(236, 182, 8)
+        + `<ellipse cx="300" cy="185" rx="32" ry="7" ${F('cushion')}/>`
+        + cat(300, 183, 0.85)
+        + paw(60, 182, 1, -60, 'near', '.5') + paw(90, 172, 0.9, -70, 'near', '.4')
+        + hill('M-10 190 Q140 178 260 188 T410 184 V200 H-10Z', 'near'),
+    }),
+
+    dog: () => ({
+      deco: sun(352, 46, 17) + drift(60, 36, 0.85, 20, 0) + drift(230, 26, 0.6, 24, 7)
+        + heart(300, 96, 1.3, 10, 2, 'collar') + heart(120, 80, 1, 12, 6, 'collar'),
+      ground: hill('M-10 128 Q90 106 200 122 T410 116 V200 H-10Z', 'far')
+        + hill('M-10 158 Q120 138 250 154 T410 148 V200 H-10Z', 'mid')
+        + [30, 70, 110, 150, 196, 236].map((x, i) => daisy(x, 168 + (i % 2) * 6)).join('')
+        + tennis(244, 186, 6) + bone(60, 188, 1, -18)
+        + golden(300, 190, 0.82)
+        + hill('M-10 192 Q140 180 260 190 T410 186 V200 H-10Z', 'near'),
+    }),
+
     snow: () => {
       const r = rng(5);
       return {
@@ -326,6 +424,8 @@ const Scenes = (() => {
     { id: 'snow', name: '雪山', desc: '純淨雪景' },
     { id: 'country', name: '鄉村', desc: '田園小屋' },
     { id: 'waterfall', name: '瀑布', desc: '山谷流水與水霧' },
+    { id: 'cat', name: '喵喵', desc: '可愛貓咪與毛線球' },
+    { id: 'dog', name: '汪星人', desc: '活潑的黃金獵犬' },
     { id: 'starry', name: '星空', desc: '靜謐夜晚（深色）' },
     { id: 'galaxy', name: '銀河', desc: '璀璨星河與流星（深色）' },
   ];
