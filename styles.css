@@ -400,6 +400,18 @@ textarea::placeholder { color: var(--muted); }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
 .layout-seg { margin-bottom: 0; }
 
+/* ---------- 上方狀態列（安裝成 App 時） ---------- */
+/* 狀態列為透明、白色文字，風景會延伸到電池後面；淺色主題加一層淡淡的深色漸層，讓白字看得清楚 */
+@media (display-mode: standalone) {
+  body::before {
+    content: ""; position: fixed; left: 0; right: 0; top: 0; z-index: 15; pointer-events: none;
+    height: calc(env(safe-area-inset-top) + 14px);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, #000) 0%, transparent 100%);
+    opacity: .38;
+  }
+  :root[data-style="starry"] body::before { opacity: .5; background: linear-gradient(180deg, var(--sky1), transparent); }
+}
+
 /* ---------- 底部導覽列 ---------- */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
