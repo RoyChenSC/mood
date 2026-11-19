@@ -634,8 +634,12 @@ function renderSettings() {
   $('#customTags').innerHTML = data.customTags.length
     ? data.customTags.map((t, i) => `<button class="chip" data-i="${i}">${esc(t)}<span class="x">✕</span></button>`).join('')
     : '<span class="note-text" style="padding:0">在「今天」頁按「＋ 自訂」即可新增標籤</span>';
+  const last = getNum(BACKUP_KEY);
+  const ago = last ? Math.floor((Date.now() - last) / DAY_MS) : -1;
+  $('#exportSub').textContent = ago < 0 ? '尚未備份過 · 存成 JSON 檔，可存到「檔案」或 iCloud'
+    : `上次備份：${ago === 0 ? '今天' : `${ago} 天前`}`;
   const total = Object.keys(data.entries).length;
-  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.10`;
+  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.11`;
 }
 
 $('#customTags').addEventListener('click', (ev) => {
@@ -648,25 +652,65 @@ $('#customTags').addEventListener('click', (ev) => {
   renderSettings();
 });
 
-$('#btnExport').addEventListener('click', async () => {
+/* ----- 備份與備份提醒 ----- */
+// 上次備份時間另外存，不動到日記資料格式
+const BACKUP_KEY = 'mood-last-backup';
+const SNOOZE_KEY = 'mood-backup-snooze';
+const REMIND_DAYS = 30;
+const DAY_MS = 86400000;
+const getNum = (k) => { try { return Number(localStorage.getItem(k)) || 0; } catch (e) { return 0; } };
+const setNum = (k, v) => { try { localStorage.setItem(k, String(v)); } catch (e) { /* 無法儲存就略過 */ } };
+
+// 距離上次備份幾天；從沒備份過就從最早一筆紀錄算起；沒有紀錄回傳 null
+function daysSinceBackup() {
+  const last = getNum(BACKUP_KEY);
+  if (last) return Math.floor((Date.now() - last) / DAY_MS);
+  const keys = Object.keys(data.entries).sort();
+  if (!keys.length) return null;
+  return Math.floor((Date.now() - parseKey(keys[0]).getTime()) / DAY_MS);
+}
+
+function renderBackupTip() {
+  const d = daysSinceBackup();
+  const show = d != null && d >= REMIND_DAYS && Date.now() > getNum(SNOOZE_KEY);
+  $('#backupTip').hidden = !show;
+  if (show) $('#backupTipText').textContent = getNum(BACKUP_KEY) ? `已經 ${d} 天沒備份了` : '還沒有備份過紀錄';
+}
+
+async function doExport() {
   const json = JSON.stringify({ app: 'mood-diary', version: 1, exported: new Date().toISOString(), ...data }, null, 2);
   const name = `心情備份-${todayKey()}.json`;
   const file = new File([json], name, { type: 'application/json' });
+  let ok = false;
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: '心情日記備份' });
-      return;
+      ok = true;
     } catch (e) {
-      if (e.name === 'AbortError') return;
+      if (e.name === 'AbortError') return false;   // 使用者取消，不算備份
     }
   }
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(file);
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  if (!ok) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(file);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  setNum(BACKUP_KEY, Date.now());
+  renderBackupTip();
+  if (currentTab === 'settings') renderSettings();
+  toast('已匯出備份');
+  return true;
+}
+
+$('#btnExport').addEventListener('click', doExport);
+$('#tipBackup').addEventListener('click', doExport);
+$('#tipLater').addEventListener('click', () => {
+  setNum(SNOOZE_KEY, Date.now() + 7 * DAY_MS);   // 7 天後再提醒
+  renderBackupTip();
 });
 
 $('#btnImport').addEventListener('click', () => $('#importFile').click());
@@ -737,7 +781,7 @@ $$('.tab').forEach((t) => t.addEventListener('click', () => {
 
 // App 從背景回來時：若跨日則自動切到新的一天
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { saveNote(); return; }
+  if (document.hidden) { saveNote(); saveWeek(); return; }
   const tk = todayKey();
   if (tk !== lastToday) {
     if (curDate === lastToday) curDate = tk;
@@ -745,11 +789,13 @@ document.addEventListener('visibilitychange', () => {
     renderers[currentTab]();
   }
 });
-window.addEventListener('pagehide', saveNote);
+// 關閉 App 前把還在等待儲存的日記與週目標存起來
+window.addEventListener('pagehide', () => { saveNote(); saveWeek(); });
 
 /* ================= 啟動 ================= */
 applyStyle(getStyle());
 renderToday();
+renderBackupTip();
 
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 if ('serviceWorker' in navigator) {

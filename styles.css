@@ -397,6 +397,23 @@ textarea::placeholder { color: var(--muted); }
 .chev { color: var(--muted); font-size: 22px; line-height: 1; }
 .note-text { font-size: 13px; color: var(--muted); padding: 0 8px; line-height: 1.7; }
 
+/* ---------- 備份提醒 ---------- */
+.backup-tip {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface); border-radius: 16px; padding: 10px 12px; margin: -6px 0 16px;
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent), var(--shadow);
+}
+.backup-tip[hidden] { display: none; }
+.bt-ic { font-size: 22px; }
+.bt-text { flex: 1; font-size: 12px; color: var(--muted); line-height: 1.45; }
+.bt-text b { display: block; font-size: 14px; color: var(--text); }
+.bt-btn { background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; padding: 7px 11px; border-radius: 999px; white-space: nowrap; }
+.bt-later { font-size: 12px; color: var(--muted); padding: 6px 2px; }
+:root[data-style] .backup-tip { -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+
+/* 設定頁主題縮圖不播放動畫，省電；只有背景風景會動 */
+.tc-scene * { animation: none !important; }
+
 /* ---------- 版面：簡略版／精確版 ---------- */
 :root:not([data-layout="precise"]) .only-precise,
 :root[data-layout="precise"] .only-simple { display: none !important; }

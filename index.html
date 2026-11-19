@@ -44,6 +44,13 @@
       </button>
     </header>
 
+    <div class="backup-tip" id="backupTip" hidden>
+      <span class="bt-ic">📦</span>
+      <span class="bt-text"><b id="backupTipText"></b>紀錄只存在這支手機上</span>
+      <button id="tipBackup" class="bt-btn">立即備份</button>
+      <button id="tipLater" class="bt-later" aria-label="7 天後再提醒">稍後</button>
+    </div>
+
     <h1 class="question" id="question">今天心情如何？</h1>
     <div class="moods only-simple" id="moods"></div>
 
@@ -189,7 +196,7 @@
     <div class="list">
       <button class="row" id="btnExport">
         <span class="ic">📤</span>
-        <span class="grow">匯出備份<span class="sub">存成 JSON 檔，可存到「檔案」或 iCloud</span></span>
+        <span class="grow">匯出備份<span class="sub" id="exportSub">存成 JSON 檔，可存到「檔案」或 iCloud</span></span>
         <span class="chev">›</span>
       </button>
       <button class="row" id="btnImport">
