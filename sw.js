@@ -1,7 +1,7 @@
 // 離線快取：
 // - 開啟 App 時先連網抓最新版；超過 3 秒還沒回應（訊號差）就先用手機裡的版本，新版在背景下載，下次開啟生效
 // - 同一次開啟的 css／js 跟著頁面用同一個來源，避免新舊檔案混用
-const CACHE = 'mood-diary-v13';
+const CACHE = 'mood-diary-v14';
 const TIMEOUT = 3000;
 const FOLLOW_MS = 10000;   // 頁面載入後這段時間內的其他檔案，跟隨頁面的來源
 const ASSETS = [

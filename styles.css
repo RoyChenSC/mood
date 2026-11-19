@@ -538,9 +538,10 @@ textarea::placeholder { color: var(--muted); }
 .ig-steps b { color: var(--accent); }
 .ig-steps svg { width: 26px; height: 26px; vertical-align: -5px; stroke: var(--accent); fill: none;
   stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.ig-copy { width: 100%; margin-top: 12px; padding: 14px; border-radius: 16px; font-size: 20px; font-weight: 700;
-  background: var(--accent); color: #fff; }
-.ig-copy[hidden] { display: none; }
+.ig-safari { display: block; padding: 15px; margin-bottom: 14px; border-radius: 16px; font-size: 22px; font-weight: 800;
+  background: var(--accent); color: #fff; text-decoration: none; }
+.ig-lead { font-size: 17px; color: var(--muted); text-align: left; margin-bottom: 4px; }
+.ig-safari[hidden], .ig-lead[hidden] { display: none; }
 .ig-later { margin-top: 8px; padding: 10px; font-size: 16px; color: var(--muted); }
 .ig-arrow { position: fixed; bottom: calc(env(safe-area-inset-bottom) + 4px); width: 56px; height: 56px;
   fill: none; stroke: #fff; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round;
