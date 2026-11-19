@@ -6,6 +6,8 @@
   --m4: #FFC233;
   --m5: #FF7F5C;
   --radius: 20px;
+  /* 底部導覽列高度：風景地面放在導覽列上方，才不會被擋住 */
+  --tabbar-h: calc(env(safe-area-inset-bottom) + 64px);
 }
 
 /* ---------- 風景主題 ---------- */
@@ -105,7 +107,7 @@
 }
 #bgfx svg, .tc-scene svg { position: absolute; left: 0; width: 100%; stroke: none; }
 #bgfx .deco { top: 0; height: 260px; }
-#bgfx .ground { bottom: 0; height: 230px; }
+#bgfx .ground { bottom: var(--tabbar-h); height: 230px; }
 .twinkle { animation: twinkle 3.2s ease-in-out infinite; }
 @keyframes twinkle { 50% { opacity: .2; } }
 .flake, .leaf { animation: fall linear infinite; transform-box: fill-box; transform-origin: center; }
@@ -123,8 +125,8 @@
 @keyframes sway { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
 @media (prefers-reduced-motion: reduce) { .twinkle, .flake, .leaf, .spin, .drift, .sway { animation: none; } }
 
-/* 風景主題下，導覽列更透明，讓底部風景透出來 */
-:root[data-style] .tabbar { background: color-mix(in srgb, var(--bg) 50%, transparent); }
+/* 地面已移到導覽列上方，導覽列改用接近不透明的底色，不再蓋住風景 */
+:root[data-style] .tabbar { background: color-mix(in srgb, var(--bg) 94%, transparent); }
 
 /* 風景主題下，卡片半透明並模糊背景 */
 :root[data-style] :is(.card, .kpi, .entry, .list, .seg) {
@@ -401,6 +403,7 @@ textarea::placeholder { color: var(--muted); }
 /* ---------- 底部導覽列 ---------- */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  height: var(--tabbar-h);
   display: flex; justify-content: center;
   padding: 6px 8px calc(env(safe-area-inset-bottom) + 4px);
   background: color-mix(in srgb, var(--bg) 82%, transparent);
