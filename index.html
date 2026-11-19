@@ -11,6 +11,10 @@
   var st = 'forest';
   try { st = localStorage.getItem('mood-style') || 'forest'; } catch (e) {}
   document.documentElement.dataset.style = st;
+  // 版面：simple 簡略版（預設）／precise 精確版
+  var ly = 'simple';
+  try { ly = localStorage.getItem('mood-layout') === 'precise' ? 'precise' : 'simple'; } catch (e) {}
+  document.documentElement.dataset.layout = ly;
 </script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -40,15 +44,56 @@
     </header>
 
     <h1 class="question" id="question">今天心情如何？</h1>
-    <div class="moods" id="moods"></div>
+    <div class="moods only-simple" id="moods"></div>
+
+    <!-- 精確版：參照《情緒癮頭日記》 -->
+    <div class="week-goal only-precise" id="weekGoal" hidden></div>
+    <div class="card only-precise">
+      <div class="card-title">心情指數 <span class="range">0–10 分</span><span class="score-face" id="scoreFace"></span></div>
+      <div class="scale" data-scale="score" id="scoreScale"></div>
+      <div class="hint">0 心情極差 · 5 平平 · 10 心情很好</div>
+    </div>
 
     <div class="details locked" id="details">
+      <div class="card only-precise">
+        <div class="card-title">癮頭指數 <span class="range">0–10 分</span></div>
+        <input class="field habit" id="habit" maxlength="20" placeholder="想改變的壞習慣（例：抽菸、甜食）">
+        <div class="scale" data-scale="craving"></div>
+        <div class="hint">0 沒有癮頭 · 5 以下還能控制 · 10 很強烈渴望</div>
+      </div>
+      <div class="card only-precise">
+        <div class="card-title">壓力指數 <span class="range">0–10 分</span></div>
+        <div class="scale" data-scale="stress"></div>
+        <input class="field" data-field="stressNote" maxlength="60" placeholder="今天有什麼讓你煩躁的壓力事件？">
+        <div class="hint">0 沒有壓力 · 5 有點壓力 · 10 壓力爆表</div>
+      </div>
+      <div class="card only-precise">
+        <div class="card-title">運動時間</div>
+        <div class="ex-row">
+          <input class="field ex-input" data-field="exercise" type="number" inputmode="numeric" min="0" max="600" placeholder="0">
+          <span class="ex-unit">分鐘</span>
+          <div class="chips ex-quick" id="exQuick"></div>
+        </div>
+        <div class="hint">先從一週 2–3 次、每次 10 分鐘開始，再慢慢增加</div>
+      </div>
+      <div class="card only-precise">
+        <div class="card-title">做一件對自己溫柔的事情</div>
+        <input class="field" data-field="kind" maxlength="60" placeholder="慢下來、深呼吸、給自己一個擁抱…">
+      </div>
+      <div class="card only-precise">
+        <div class="card-title">今天感激的人、事、物</div>
+        <input class="field" data-field="grateful" maxlength="60" placeholder="小事也可以：今天放晴、寵物的陪伴…">
+      </div>
+      <div class="card only-precise">
+        <div class="card-title">認出自己的優點</div>
+        <div class="chips" id="strengths"></div>
+      </div>
       <div class="card">
         <div class="card-title">發生了什麼</div>
         <div class="chips" id="tags"></div>
       </div>
       <div class="card">
-        <div class="card-title">寫點什麼</div>
+        <div class="card-title" id="noteTitle">寫點什麼</div>
         <textarea id="note" rows="4" placeholder="記下今天的小事、感受或想法…"></textarea>
       </div>
       <div class="save-row">
@@ -61,6 +106,23 @@
   <!-- 日曆 -->
   <section id="view-calendar" class="view">
     <h2 class="page-title">日曆</h2>
+    <div class="card only-precise" id="weekCard">
+      <div class="cal-head">
+        <button class="icon-btn" id="wkPrev" aria-label="上一週">
+          <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <div class="cal-title" id="wkTitle"></div>
+        <button class="icon-btn" id="wkNext" aria-label="下一週">
+          <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="wk-grid" id="wkGrid"></div>
+      <div class="wk-fields">
+        <label>本週小目標<input class="field" data-wk="goal" maxlength="40" placeholder="例：看完一本書、一週運動三次"></label>
+        <label>獎勵自己<input class="field" data-wk="reward" maxlength="40" placeholder="例：吃美食、下午茶、去按摩"></label>
+        <label>給自己的話<input class="field" data-wk="msg" maxlength="60" placeholder="每天都是新的一天。"></label>
+      </div>
+    </div>
     <div class="card">
       <div class="cal-head">
         <button class="icon-btn" id="calPrev" aria-label="上個月">
@@ -90,6 +152,11 @@
       <div class="card-title">心情趨勢</div>
       <div id="chart"></div>
     </div>
+    <div class="card chart only-precise">
+      <div class="card-title">精確指標</div>
+      <div class="pkpis" id="pkpis"></div>
+      <div id="pchart"></div>
+    </div>
     <div class="card">
       <div class="card-title">心情分布</div>
       <div id="dist"></div>
@@ -103,6 +170,15 @@
   <!-- 設定 -->
   <section id="view-settings" class="view">
     <h2 class="page-title">設定</h2>
+    <div class="list-title">版面</div>
+    <div class="list pad">
+      <div class="seg layout-seg" id="layoutSeg">
+        <button data-l="simple">簡略版</button>
+        <button data-l="precise">精確版</button>
+      </div>
+      <div class="hint" id="layoutDesc"></div>
+    </div>
+
     <div class="list-title">主題風格</div>
     <div class="list pad">
       <div class="theme-grid" id="themeGrid"></div>
