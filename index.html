@@ -244,6 +244,18 @@
   </button>
 </nav>
 
+<!-- 安裝引導：在 Safari 或 LINE 打開、尚未加入主畫面時顯示（app.js 的 initInstallGuide） -->
+<div id="installGuide" class="ig" hidden>
+  <div class="ig-card" role="dialog" aria-labelledby="igTitle">
+    <img src="icons/icon-192.png" alt="" class="ig-icon">
+    <h2 id="igTitle" class="ig-title"></h2>
+    <ol id="igSteps" class="ig-steps"></ol>
+    <button id="igCopy" class="ig-copy" hidden>複製網址</button>
+    <button id="igLater" class="ig-later">先不用，直接看看</button>
+  </div>
+  <svg id="igArrow" class="ig-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v15M5 12l7 7 7-7"/></svg>
+</div>
+
 <div id="toast" class="toast" role="status"></div>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 <script src="scenes.js"></script>

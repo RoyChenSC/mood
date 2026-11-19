@@ -639,7 +639,7 @@ function renderSettings() {
   $('#exportSub').textContent = ago < 0 ? '尚未備份過 · 存成 JSON 檔，可存到「檔案」或 iCloud'
     : `上次備份：${ago === 0 ? '今天' : `${ago} 天前`}`;
   const total = Object.keys(data.entries).length;
-  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.11`;
+  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.12`;
 }
 
 $('#customTags').addEventListener('click', (ev) => {
@@ -792,10 +792,67 @@ document.addEventListener('visibilitychange', () => {
 // 關閉 App 前把還在等待儲存的日記與週目標存起來
 window.addEventListener('pagehide', () => { saveNote(); saveWeek(); });
 
+/* ================= 安裝引導 ================= */
+// iPhone 不允許網頁自己加入主畫面，只能一步步教：
+// - 在 LINE 等 App 內建瀏覽器：先自動改用 Safari 開（LINE 認得 openExternalBrowser=1），不行就教「用 Safari 開啟」
+// - 在 Safari、尚未加入主畫面：教「分享 → 加入主畫面 → 新增」，箭頭指向分享按鈕（Safari 26 起在「⋯」裡）
+// 預覽用：網址加 ?guide=safari／safari26／line
+const SHARE_SVG = '<svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M8 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-2"/></svg>';
+const APP_URL = 'https://roychensc.github.io/mood/';
+
+function initInstallGuide() {
+  const ua = navigator.userAgent;
+  const params = new URLSearchParams(location.search);
+  const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+  const ios = /iPhone|iPod/.test(ua);
+  const isLine = /\bLine\//.test(ua);
+  const inApp = isLine || /FBAN|FBAV|Instagram|MicroMessenger/.test(ua);
+  const ver = Number((ua.match(/Version\/(\d+)/) || [])[1]) || 0;
+  let mode = params.get('guide');
+  if (!mode) {
+    if (standalone || !ios) return;
+    let later = false;
+    try { later = sessionStorage.getItem('mood-guide-later') === '1'; } catch (e) { /* 略過 */ }
+    if (later) return;
+    mode = inApp ? 'line' : ver >= 26 ? 'safari26' : 'safari';
+  }
+
+  // LINE：自動改用 Safari 開，只試一次避免一直重新整理
+  if (mode === 'line' && isLine && !params.has('openExternalBrowser')) {
+    let tried = false;
+    try { tried = sessionStorage.getItem('mood-ext-tried') === '1'; sessionStorage.setItem('mood-ext-tried', '1'); } catch (e) { tried = true; }
+    if (!tried) { location.replace(APP_URL + '?openExternalBrowser=1'); return; }
+  }
+
+  const STEPS = {
+    line: ['點畫面<b>右上角或右下角的「⋯」</b>', '選<b>「用 Safari 開啟」</b>或<b>「以瀏覽器開啟」</b>', '打開後，照畫面的說明加到桌面'],
+    safari: [`點最下面中間的${SHARE_SVG}<b>「分享」</b>`, '往上滑，點<b>「加入主畫面」</b>', '點右上角<b>「新增」</b>'],
+    safari26: ['點右下角的<b>「⋯」</b>（三個點）', `點${SHARE_SVG}<b>「分享」</b>`, '往上滑，點<b>「加入主畫面」</b>', '點右上角<b>「新增」</b>或<b>「加入」</b>'],
+  };
+  if (!STEPS[mode]) return;
+  $('#igTitle').innerHTML = mode === 'line' ? '請改用 Safari 打開' : '把心情日記<br>放到手機桌面';
+  $('#igSteps').innerHTML = STEPS[mode].map((t) => `<li><span>${t}</span></li>`).join('');
+  $('#igCopy').hidden = mode !== 'line';
+  const arrow = $('#igArrow');
+  arrow.setAttribute('class', 'ig-arrow ' + (mode === 'safari' ? 'center' : 'right'));   // SVG 不能用 className
+  arrow.toggleAttribute('hidden', mode === 'line');   // LINE 的按鈕位置不固定，不畫箭頭
+  $('#installGuide').hidden = false;
+
+  $('#igLater').addEventListener('click', () => {
+    $('#installGuide').hidden = true;
+    try { sessionStorage.setItem('mood-guide-later', '1'); } catch (e) { /* 略過 */ }
+  });
+  $('#igCopy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(APP_URL); toast('已複製，請打開 Safari 貼上'); }
+    catch (e) { toast(APP_URL); }
+  });
+}
+
 /* ================= 啟動 ================= */
 applyStyle(getStyle());
 renderToday();
 renderBackupTip();
+initInstallGuide();
 
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 if ('serviceWorker' in navigator) {
