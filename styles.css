@@ -11,22 +11,22 @@
 }
 
 /* ---------- 風景主題 ---------- */
-/* 森林同時是預設主題（尚未套用 data-style 前也使用這組配色） */
-:root, [data-style="forest"] {
-  --bg: #F1F7EF; --sky1: #D9ECD6; --sky2: #F6FAF3; --glow: #FFF6D6;
-  --surface: rgba(255, 255, 255, .84); --surface-2: #E6F0E3;
-  --text: #1F2E24; --muted: #6C8070; --line: #DAE7D6; --accent: #3E8E5E;
-  --shadow: 0 1px 2px rgba(30, 70, 40, .05), 0 8px 24px rgba(30, 70, 40, .08);
-  --far: #C3DCC2; --mid: #8DBA97; --near: #5B926D; --sun: #FFE7A3; --cloud: #fff;
-  color-scheme: light;
-}
-[data-style="bluesky"] {
+/* 藍天白雲同時是預設主題（尚未套用 data-style 前也使用這組配色）；必須排在其他主題前面，才不會蓋掉它們 */
+:root, [data-style="bluesky"] {
   --bg: #F2F8FF; --sky1: #A7D6FA; --sky2: #EEF7FF; --glow: #FFFFFF;
   --surface: rgba(255, 255, 255, .86); --surface-2: #E4F0FB;
   --text: #142A40; --muted: #5C7690; --line: #D5E6F5; --accent: #1F6FC4;
   --shadow: 0 1px 2px rgba(20, 80, 150, .05), 0 8px 24px rgba(20, 80, 150, .09);
   --far: #C2E5B6; --mid: #97D08B; --near: #6BB866; --tree: #4E9E4E; --roof: #7A5A3A;
   --kite: #FF6B6B; --cloud: #fff;
+  color-scheme: light;
+}
+[data-style="forest"] {
+  --bg: #F1F7EF; --sky1: #D9ECD6; --sky2: #F6FAF3; --glow: #FFF6D6;
+  --surface: rgba(255, 255, 255, .84); --surface-2: #E6F0E3;
+  --text: #1F2E24; --muted: #6C8070; --line: #DAE7D6; --accent: #3E8E5E;
+  --shadow: 0 1px 2px rgba(30, 70, 40, .05), 0 8px 24px rgba(30, 70, 40, .08);
+  --far: #C3DCC2; --mid: #8DBA97; --near: #5B926D; --sun: #FFE7A3; --cloud: #fff;
   color-scheme: light;
 }
 [data-style="maple"] {

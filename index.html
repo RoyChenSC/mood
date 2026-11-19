@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>心情日記</title>
 <meta name="description" content="簡潔的每日心情紀錄">
-<meta name="theme-color" content="#D9ECD6">
+<meta name="theme-color" content="#A7D6FA">
 <script>
-  // 在畫面繪製前套用主題，避免閃爍（預設森林；無效的舊值由 app.js 校正）
-  var st = 'forest';
-  try { st = localStorage.getItem('mood-style') || 'forest'; } catch (e) {}
+  // 在畫面繪製前套用主題，避免閃爍（預設藍天白雲；無效的舊值由 app.js 校正）
+  var st = 'bluesky';
+  try { st = localStorage.getItem('mood-style') || 'bluesky'; } catch (e) {}
   document.documentElement.dataset.style = st;
   // 版面：simple 簡略版（預設）／precise 精確版
   var ly = 'simple';

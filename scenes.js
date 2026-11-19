@@ -414,9 +414,9 @@ const Scenes = (() => {
   };
 
   const LIST = [
-    { id: 'forest', name: '森林', desc: '清新綠意（預設）' },
+    { id: 'bluesky', name: '藍天白雲', desc: '晴空與風箏（預設）' },
+    { id: 'forest', name: '森林', desc: '清新綠意' },
     { id: 'sunshine', name: '陽光', desc: '明亮向日葵' },
-    { id: 'bluesky', name: '藍天白雲', desc: '晴空與風箏' },
     { id: 'maple', name: '楓葉林', desc: '秋日紅葉' },
     { id: 'beach', name: '海灘', desc: '海風與陽光' },
     { id: 'desert', name: '沙漠', desc: '溫暖沙丘' },
@@ -429,7 +429,7 @@ const Scenes = (() => {
     { id: 'starry', name: '星空', desc: '靜謐夜晚（深色）' },
     { id: 'galaxy', name: '銀河', desc: '璀璨星河與流星（深色）' },
   ];
-  const DEFAULT = 'forest';
+  const DEFAULT = 'bluesky';
 
   function svg(id) {
     const s = (BUILD[id] || BUILD[DEFAULT])();
