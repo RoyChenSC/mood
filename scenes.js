@@ -139,6 +139,46 @@ const Scenes = (() => {
     return `${s}" style="fill:none;stroke:var(--roof);stroke-width:1.6;opacity:.55"/>`;
   }
 
+  // 銀河：斜向的光帶（多層半透明橢圓）＋沿光帶密集的小星星
+  function milkyWay(r) {
+    let s = '<g transform="rotate(-24 200 110)">'
+      + `<ellipse cx="200" cy="110" rx="300" ry="46" ${F('band1', ';opacity:.16')}/>`
+      + `<ellipse cx="200" cy="110" rx="260" ry="26" ${F('band2', ';opacity:.2')}/>`
+      + `<ellipse cx="210" cy="108" rx="190" ry="12" ${F('band1', ';opacity:.28')}/>`
+      + '<ellipse cx="215" cy="107" rx="110" ry="5" style="fill:#fff;opacity:.22"/>'
+      + `<ellipse cx="150" cy="114" rx="70" ry="4" ${F('far', ';opacity:.7')}/>`;  // 暗塵帶
+    for (let i = 0; i < 90; i++) {
+      const x = -60 + r() * 520, y = 110 + (r() + r() + r() - 1.5) * 34;
+      const tw = r() < 0.3;
+      s += `<circle cx="${n1(x)}" cy="${n1(y)}" r="${n1(0.3 + r() * 0.9)}"${tw ? ' class="twinkle"' : ''} style="fill:#fff;opacity:${(0.5 + r() * 0.5).toFixed(2)}${tw ? `;animation-delay:-${n1(r() * 3)}s` : ''}"/>`;
+    }
+    return s + '</g>';
+  }
+  // 帶環的小行星
+  const planet = (x, y, rad) =>
+    `<circle cx="${x}" cy="${y}" r="${rad * 2}" ${F('planet', ';opacity:.12')}/><circle cx="${x}" cy="${y}" r="${rad}" ${F('planet')}/>`
+    + `<ellipse cx="${x}" cy="${y}" rx="${rad * 1.9}" ry="${n1(rad * 0.45)}" transform="rotate(-18 ${x} ${y})" style="fill:none;stroke:var(--band1);stroke-width:1.6;opacity:.85"/>`;
+  // 流星：每隔幾秒劃過一次
+  const meteor = (x, y, delay) =>
+    `<g class="shoot" style="animation-delay:${delay}s"><path d="M${x} ${y} l34 -16" style="fill:none;stroke:#fff;stroke-width:1.4;opacity:.9"/></g>`;
+
+  // 瀑布：兩側岩壁之間的水流（虛線往下流動）＋水潭與水霧
+  function waterfall() {
+    let s = hill('M100 200 L112 92 L136 66 L178 58 L182 200Z', 'rock')
+      + hill('M218 200 L222 56 L262 62 L290 90 L304 200Z', 'rock')
+      + hill('M100 200 L112 92 L124 100 L130 200Z', 'rock2')
+      + hill('M304 200 L290 90 L280 104 L278 200Z', 'rock2')
+      + `<rect x="178" y="56" width="44" height="118" ${F('water2')}/>`
+      + `<ellipse cx="200" cy="57" rx="23" ry="3" ${F('water')}/>`;
+    [183, 190, 196, 203, 209, 216].forEach((x, i) => {
+      s += `<path class="flow" d="M${x} 58 V172" style="fill:none;stroke:var(--water);stroke-width:${i % 2 ? 2.4 : 1.6};stroke-dasharray:18 9;opacity:.9;animation-duration:${(0.9 + (i % 3) * 0.2).toFixed(1)}s"/>`;
+    });
+    s += `<ellipse cx="200" cy="182" rx="120" ry="16" ${F('water2')}/>`
+      + waves(180, 1.2).replace('opacity:.55', 'opacity:.6')
+      + `<g class="mist"><ellipse cx="200" cy="172" rx="40" ry="9" style="fill:#fff;opacity:.75"/><ellipse cx="178" cy="168" rx="18" ry="7" style="fill:#fff;opacity:.6"/><ellipse cx="224" cy="167" rx="20" ry="7" style="fill:#fff;opacity:.6"/></g>`;
+    return s;
+  }
+
   const BUILD = {
     forest: () => {
       const r = rng(7);
@@ -226,6 +266,34 @@ const Scenes = (() => {
       };
     },
 
+    galaxy: () => {
+      const r = rng(77);
+      return {
+        deco: stars(r, 45) + milkyWay(r) + planet(345, 48, 11) + meteor(250, 40, 1) + meteor(120, 90, 5),
+        ground: ridge(r, 150, 5, 22, 48, 'far')
+          + pines(r, 176, 12, 20, 34, 'mid')
+          + hill('M-10 174 Q100 156 210 168 T410 162 V200 H-10Z', 'mid')
+          + hill('M-10 190 Q140 178 260 188 T410 184 V200 H-10Z', 'near'),
+      };
+    },
+
+    waterfall: () => {
+      // 三角形的樹：[x, 底部 y, 高度, 顏色]
+      const tri = ([x, y, h, v]) => `<path d="M${x} ${y - h} L${n1(x - h * 0.3)} ${y} H${n1(x + h * 0.3)}Z" ${F(v)}/>`;
+      return {
+        deco: sun(352, 46, 15) + drift(60, 36, 0.85, 22, 0) + drift(240, 26, 0.6, 26, 8),
+        ground: hill('M-10 118 Q80 96 170 110 T410 104 V200 H-10Z', 'far')
+          + waterfall()
+          + [[128, 72, 16, 'tree'], [146, 64, 21, 'tree'], [166, 60, 26, 'tree'],
+            [234, 59, 24, 'tree'], [252, 64, 18, 'tree'], [272, 80, 21, 'tree']].map(tri).join('')
+          + hill('M-10 200 V150 Q40 140 80 156 Q100 166 112 176 Q90 190 60 200Z', 'mid')
+          + hill('M410 200 V146 Q360 138 320 154 Q296 166 286 178 Q310 192 340 200Z', 'mid')
+          + [[20, 168, 40, 'near'], [50, 164, 32, 'near'], [352, 170, 40, 'near'], [384, 166, 34, 'near']].map(tri).join('')
+          + hill('M-10 200 V186 Q60 178 120 190 Q90 198 60 200Z', 'near')
+          + hill('M410 200 V184 Q340 178 290 192 Q320 199 350 200Z', 'near'),
+      };
+    },
+
     snow: () => {
       const r = rng(5);
       return {
@@ -257,7 +325,9 @@ const Scenes = (() => {
     { id: 'glacier', name: '冰川', desc: '冰河與浮冰' },
     { id: 'snow', name: '雪山', desc: '純淨雪景' },
     { id: 'country', name: '鄉村', desc: '田園小屋' },
+    { id: 'waterfall', name: '瀑布', desc: '山谷流水與水霧' },
     { id: 'starry', name: '星空', desc: '靜謐夜晚（深色）' },
+    { id: 'galaxy', name: '銀河', desc: '璀璨星河與流星（深色）' },
   ];
   const DEFAULT = 'forest';
 

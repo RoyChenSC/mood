@@ -62,6 +62,25 @@
   --far: #1A1F4D; --mid: #141940; --near: #0B0F2C; --moon: #F7F1D0;
   color-scheme: dark;
 }
+[data-style="galaxy"] {
+  --bg: #140B2E; --sky1: #0A0620; --sky2: #2A1452; --glow: #4A2878;
+  --surface: rgba(44, 26, 88, .72); --surface-2: rgba(255, 255, 255, .08);
+  --text: #F4EEFF; --muted: #BBA9E2; --line: rgba(255, 255, 255, .1); --accent: #E39BFF;
+  --shadow: none;
+  --far: #241549; --mid: #170D35; --near: #0C0722;
+  --band1: #C8A6FF; --band2: #FF9FD6; --planet: #FFB98E;
+  color-scheme: dark;
+}
+[data-style="waterfall"] {
+  --bg: #EEF8F4; --sky1: #CDECE4; --sky2: #F4FBF8; --glow: #FFFFFF;
+  --surface: rgba(255, 255, 255, .85); --surface-2: #DFF0EA;
+  --text: #15302A; --muted: #5C7E75; --line: #D2E9E2; --accent: #1E9683;
+  --shadow: 0 1px 2px rgba(20, 100, 80, .05), 0 8px 24px rgba(20, 100, 80, .09);
+  --far: #BCDDCB; --mid: #7DB898; --near: #4C8C6B; --tree: #3E8A5B;
+  --rock: #8E9C96; --rock2: #74837D; --water: #F2FBFF; --water2: #9BD6EC;
+  --sun: #FFF1B8; --cloud: #fff;
+  color-scheme: light;
+}
 [data-style="sunshine"] {
   --bg: #FFFBEA; --sky1: #FFEFA8; --sky2: #FFFDF2; --glow: #FFE680;
   --surface: rgba(255, 255, 255, .86); --surface-2: #FFF3C7;
@@ -123,7 +142,18 @@
 @keyframes drift { from { transform: translateX(-28px); } to { transform: translateX(28px); } }
 .sway { animation: sway 4s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 0; }
 @keyframes sway { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
-@media (prefers-reduced-motion: reduce) { .twinkle, .flake, .leaf, .spin, .drift, .sway { animation: none; } }
+/* 瀑布：水流往下、水霧呼吸；銀河：流星 */
+.flow { animation: flow 1s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -27; } }
+.mist { animation: mist 4s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+@keyframes mist { from { opacity: .7; transform: scale(.94); } to { opacity: 1; transform: scale(1.06); } }
+.shoot { opacity: 0; animation: shoot 7s ease-in infinite; }
+@keyframes shoot {
+  0%, 86% { opacity: 0; transform: translate(0, 0); }
+  88% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-110px, 52px); }
+}
+@media (prefers-reduced-motion: reduce) { .twinkle, .flake, .leaf, .spin, .drift, .sway, .flow, .mist, .shoot { animation: none; } }
 
 /* 地面已移到導覽列上方，導覽列改用接近不透明的底色，不再蓋住風景 */
 :root[data-style] .tabbar { background: color-mix(in srgb, var(--bg) 94%, transparent); }
@@ -409,7 +439,7 @@ textarea::placeholder { color: var(--muted); }
     background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, #000) 0%, transparent 100%);
     opacity: .38;
   }
-  :root[data-style="starry"] body::before { opacity: .5; background: linear-gradient(180deg, var(--sky1), transparent); }
+  :root:is([data-style="starry"], [data-style="galaxy"]) body::before { opacity: .5; background: linear-gradient(180deg, var(--sky1), transparent); }
 }
 
 /* ---------- 底部導覽列 ---------- */

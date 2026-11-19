@@ -1,5 +1,5 @@
 // 離線快取：有網路時一律抓最新版（並更新快取），沒網路時才使用快取
-const CACHE = 'mood-diary-v8';
+const CACHE = 'mood-diary-v9';
 const ASSETS = [
   './',
   './index.html',
