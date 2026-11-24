@@ -177,7 +177,8 @@ function renderPrecise(e, isToday) {
   if (isPrecise()) $('#question').textContent = isToday ? '今天的心情日記' : '那天的心情日記';
   $('#noteTitle').textContent = isPrecise() ? '其他好幫手（睡眠、飲食、鼓勵自己的話）' : '寫點什麼';
   $$('[data-scale]').forEach((el) => {
-    const v = e ? e[el.dataset.scale] : undefined;
+    // 心情用兩版共用的分數：只用簡略版記錄的那天，也會亮起表情代表的分數
+    const v = !e ? undefined : el.dataset.scale === 'score' ? val10(e) : e[el.dataset.scale];
     el.querySelectorAll('button').forEach((b) => b.classList.toggle('on', v != null && +b.dataset.v === v));
   });
   $('#scoreFace').textContent = e ? moodOf(e.mood).emoji : '';
@@ -341,7 +342,8 @@ function entryCard(k, e) {
     const p = [['心情', val10(e)], ['癮頭', e.craving], ['壓力', e.stress]].filter(([, v]) => v != null).map(([n, v]) => `${n} ${v}`);
     if (e.exercise) p.push(`運動 ${e.exercise} 分`);
     if (e.grateful) p.push(`感激：${esc(e.grateful)}`);
-    if (p.length) pm = `<span class="pm">${p.join(' · ')}</span>`;
+    // 每個項目包成一塊，換行時整塊移到下一行，不會把「家人」拆成兩行
+    if (p.length) pm = `<span class="pm">${p.map((x) => `<span>${x}</span>`).join('')}</span>`;
   }
   return `<button class="entry" data-k="${k}" style="--c:var(--m${e.mood})">
     <span class="em">${m.emoji}</span>
@@ -667,7 +669,7 @@ function renderSettings() {
   $('#exportSub').textContent = ago < 0 ? '尚未備份過 · 存成 JSON 檔，可存到「檔案」或 iCloud'
     : `上次備份：${ago === 0 ? '今天' : `${ago} 天前`}`;
   const total = Object.keys(data.entries).length;
-  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.19`;
+  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.20`;
 }
 
 $('#customTags').addEventListener('click', (ev) => {
