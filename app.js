@@ -156,6 +156,7 @@ function renderToday() {
 
   const note = $('#note');
   if (document.activeElement !== note) note.value = e ? (e.note || '') : '';
+  autoGrow(note);
 
   renderPrecise(e, isToday);
 
@@ -308,6 +309,13 @@ function saveNote() {
   if (changed) { e.t = Date.now(); persist(); }
   $('#saveStatus').textContent = `已儲存 · ${fmtTime(e.t)}`;
 }
+// 日記框跟著字數長高，長日記不用在小框裡捲動（最低高度由 CSS 的 min-height 決定）
+function autoGrow(el) {
+  el.style.height = 'auto';
+  if (el.scrollHeight) el.style.height = `${el.scrollHeight}px`;   // 畫面隱藏時 scrollHeight 為 0，維持預設高度
+}
+$('#note').addEventListener('input', (ev) => autoGrow(ev.target));
+
 $$('#note, #habit, #details [data-field]').forEach((el) => {
   el.addEventListener('input', () => {
     clearTimeout(noteTimer);
@@ -485,15 +493,21 @@ function renderChart(keys, pts) {
   });
   const P = pts.map((p) => [x(p.i), y(val10(p.e))]);
   if (P.length > 1) {
-    // 平滑曲線（Catmull-Rom 轉 Bézier）
+    // 平滑曲線（單調三次插值 Fritsch–Carlson）：曲線不會衝過資料點，高低點就在點上
+    const m = P.length;
+    const dx = [], sl = [];
+    for (let i = 0; i < m - 1; i++) { dx[i] = P[i + 1][0] - P[i][0]; sl[i] = (P[i + 1][1] - P[i][1]) / dx[i]; }
+    const tg = [sl[0]];
+    for (let i = 1; i < m - 1; i++) {
+      // 前後斜率方向不同（轉折點）時切線為 0，曲線在點上變平
+      tg[i] = sl[i - 1] * sl[i] <= 0 ? 0
+        : 3 * (dx[i - 1] + dx[i]) / ((2 * dx[i] + dx[i - 1]) / sl[i - 1] + (dx[i] + 2 * dx[i - 1]) / sl[i]);
+    }
+    tg[m - 1] = sl[m - 2];
     let d = `M${P[0][0]},${P[0][1]}`;
-    for (let i = 0; i < P.length - 1; i++) {
-      const p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || p2;
-      const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
-      const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-      c1[1] = Math.min(Math.max(c1[1], T), H - B);
-      c2[1] = Math.min(Math.max(c2[1], T), H - B);
-      d += ` C${c1[0]},${c1[1]} ${c2[0]},${c2[1]} ${p2[0]},${p2[1]}`;
+    for (let i = 0; i < m - 1; i++) {
+      const h = dx[i] / 3;
+      d += ` C${P[i][0] + h},${P[i][1] + tg[i] * h} ${P[i + 1][0] - h},${P[i + 1][1] - tg[i + 1] * h} ${P[i + 1][0]},${P[i + 1][1]}`;
     }
     const base = H - B;
     s += `<path d="${d} L${P[P.length - 1][0]},${base} L${P[0][0]},${base} Z" style="fill:url(#fillGrad);stroke:none"/>`;
@@ -688,7 +702,7 @@ function renderSettings() {
   $('#exportSub').textContent = ago < 0 ? '尚未備份過 · 存成 JSON 檔，可存到「檔案」或 iCloud'
     : `上次備份：${ago === 0 ? '今天' : `${ago} 天前`}`;
   const total = Object.keys(data.entries).length;
-  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.21`;
+  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.22`;
 }
 
 $('#customTags').addEventListener('click', (ev) => {
