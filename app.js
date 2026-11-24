@@ -651,7 +651,7 @@ function renderSettings() {
   $('#exportSub').textContent = ago < 0 ? '尚未備份過 · 存成 JSON 檔，可存到「檔案」或 iCloud'
     : `上次備份：${ago === 0 ? '今天' : `${ago} 天前`}`;
   const total = Object.keys(data.entries).length;
-  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.15`;
+  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.17`;
 }
 
 $('#customTags').addEventListener('click', (ev) => {
