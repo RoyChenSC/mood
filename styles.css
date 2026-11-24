@@ -5,6 +5,10 @@
   --m3: #5CCB98;
   --m4: #FFC233;
   --m5: #FF7F5C;
+  /* 精確指標圖的三條線：固定用藍／橘／洋紅，色相差很大，不隨主題變化，避免撞色 */
+  --c-mood: #1F63D6;
+  --c-craving: #F26B0F;
+  --c-stress: #C4258F;
   --radius: 20px;
   /* 底部導覽列高度：風景地面放在導覽列上方，才不會被擋住 */
   --tabbar-h: calc(env(safe-area-inset-bottom) + 64px);
@@ -135,6 +139,10 @@
   --far: #D6E5AE; --mid: #B7D282; --near: #92BB5D; --barn: #C65D3B; --roof: #7A3B2A;
   --tree: #6E9E4A; --sun: #FFC66B; --cloud: #fff;
   color-scheme: light;
+}
+/* 深色主題：指標線改用較亮的同色系，在深色底上才清楚 */
+[data-style="starry"], [data-style="galaxy"] {
+  --c-mood: #5EA2FF; --c-craving: #FF9B45; --c-stress: #FF5FC8;
 }
 
 /* 背景風景圖層 */
@@ -478,7 +486,7 @@ textarea::placeholder { color: var(--muted); }
 .pkpis b small { font-size: 12px; font-weight: 500; color: var(--muted); }
 .pkpis span { font-size: 11px; color: var(--muted); }
 .legend { display: flex; gap: 14px; justify-content: center; font-size: 12px; color: var(--muted); margin-top: 6px; }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.legend i { display: inline-block; width: 14px; height: 4px; border-radius: 2px; margin-right: 4px; vertical-align: 3px; }
 .layout-seg { margin-bottom: 0; }
 
 /* ---------- 上方狀態列（安裝成 App 時） ---------- */

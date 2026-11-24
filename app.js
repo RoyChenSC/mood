@@ -553,9 +553,9 @@ function renderStats() {
 
 /* ----- 精確版：統計 ----- */
 const P_SERIES = [
-  ['score', '心情', 'var(--accent)'],
-  ['craving', '癮頭', 'var(--m5)'],
-  ['stress', '壓力', 'var(--m1)'],
+  ['score', '心情', 'var(--c-mood)'],
+  ['craving', '癮頭', 'var(--c-craving)'],
+  ['stress', '壓力', 'var(--c-stress)'],
 ];
 
 function renderPreciseStats(keys, pts) {
@@ -585,8 +585,8 @@ function renderPreciseStats(keys, pts) {
   });
   P_SERIES.forEach(([f, , c]) => {
     const P = pts.filter((p) => get(p.e, f) != null).map((p) => [x(p.i), y(get(p.e, f))]);
-    if (P.length > 1) s += `<path d="M${P.map((p) => p.join(',')).join(' L')}" style="stroke:${c};stroke-width:2;fill:none"/>`;
-    P.forEach(([cx, cy]) => { s += `<circle cx="${cx}" cy="${cy}" r="${n > 30 ? 2 : 3}" style="fill:${c};stroke:none"/>`; });
+    if (P.length > 1) s += `<path d="M${P.map((p) => p.join(',')).join(' L')}" style="stroke:${c};stroke-width:2.5;fill:none;stroke-linejoin:round"/>`;
+    P.forEach(([cx, cy]) => { s += `<circle cx="${cx}" cy="${cy}" r="${n > 30 ? 2.5 : 3.5}" style="fill:${c};stroke:var(--surface);stroke-width:1"/>`; });
   });
   s += `<text class="axis" x="${x(0)}" y="${H - 4}">${shortDate(keys[0])}</text><text class="axis" x="${x(n - 1)}" y="${H - 4}" text-anchor="end">${shortDate(keys[n - 1])}</text>`;
   $('#pchart').innerHTML = s + '</svg><div class="legend">' +
@@ -667,7 +667,7 @@ function renderSettings() {
   $('#exportSub').textContent = ago < 0 ? '尚未備份過 · 存成 JSON 檔，可存到「檔案」或 iCloud'
     : `上次備份：${ago === 0 ? '今天' : `${ago} 天前`}`;
   const total = Object.keys(data.entries).length;
-  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.18`;
+  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.19`;
 }
 
 $('#customTags').addEventListener('click', (ev) => {
