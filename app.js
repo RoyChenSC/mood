@@ -17,17 +17,28 @@ const $$ = (s) => document.querySelectorAll(s);
 
 // 精確版（參照《情緒癮頭日記》）的欄位；舊資料沒有這些欄位也能正常使用
 const STRENGTHS = ['體貼', '溫暖', '獨立', '敏感', '有覺察力', '負責', '勇敢', '創意', '幽默', '大方', '耐心', '包容', '毅力'];
-const SCALES = ['score', 'craving', 'stress'];   // 0–10 分
+const SCALES = ['score', 'craving', 'stress'];   // 心情 1–10 分；癮頭、壓力 0–10 分
 const TEXTS = ['stressNote', 'kind', 'grateful'];
-// 心情指數 0–10 與 5 級心情互換：0–1→1、2–3→2、4–6→3、7–8→4、9–10→5
-const scoreToMood = (s) => Math.min(5, Math.round(s / 2.5) + 1);
-const moodToScore = (m) => [0, 3, 5, 8, 10][m - 1];
+// 心情 1–10 分與 5 個表情互換：1–2→😣、3–4→😔、5–6→😐、7–8→🙂、9–10→😄；表情代表分數 2、4、6、8、10
+const scoreToMood = (s) => Math.min(5, Math.max(1, Math.ceil(s / 2)));
+const moodToScore = (m) => m * 2;
+// 兩種版面共用的心情分數（1–10）：有精確版分數就用它，否則用表情代表的分數
+const val10 = (e) => (e.score != null ? e.score : moodToScore(e.mood));
+// 舊資料的心情指數是 0–10：0 分改成 1 分，表情依新的對照重新計算
+function fixScore(e) {
+  if (e && e.score != null) {
+    e.score = Math.min(10, Math.max(1, Math.round(e.score)));
+    e.mood = scoreToMood(e.score);
+  }
+  return e;
+}
 const blank = () => ({ entries: {}, customTags: [], customStrengths: [], weeks: {}, habit: '' });
 
 function load() {
   try {
     const d = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (d && typeof d.entries === 'object') {
+      Object.values(d.entries).forEach(fixScore);
       return {
         entries: d.entries,
         customTags: Array.isArray(d.customTags) ? d.customTags : [],
@@ -52,7 +63,7 @@ function cleanEntry(e) {
   TEXTS.forEach((f) => { if (e[f]) o[f] = String(e[f]); });
   if (e.exercise > 0) o.exercise = Math.min(600, Math.round(e.exercise));
   if (Array.isArray(e.strengths)) o.strengths = e.strengths.map(String);
-  return o;
+  return fixScore(o);
 }
 
 function persist() {
@@ -114,7 +125,7 @@ function toast(msg) {
 /* ================= 今天 ================= */
 $('#moods').innerHTML = MOODS.map((m) => `
   <button class="mood" data-v="${m.v}" style="--c:var(--m${m.v})" aria-pressed="false" aria-label="${m.label}">
-    <span class="face">${m.emoji}</span><span class="lbl">${m.label}</span>
+    <span class="face">${m.emoji}</span><span class="lbl">${m.label}</span><span class="pts">${moodToScore(m.v)} 分</span>
   </button>`).join('');
 
 function renderToday() {
@@ -129,6 +140,8 @@ function renderToday() {
 
   $$('#moods .mood').forEach((b) => {
     const on = !!e && e.mood === +b.dataset.v;
+    // 選中的表情顯示實際分數（精確版可能打了 7 分，表情一樣是 🙂）
+    b.querySelector('.pts').textContent = `${on ? val10(e) : moodToScore(+b.dataset.v)} 分`;
     b.classList.toggle('selected', on);
     b.setAttribute('aria-pressed', on);
   });
@@ -153,7 +166,8 @@ function renderToday() {
 /* ----- 精確版：今天頁 ----- */
 $$('[data-scale]').forEach((el) => {
   const invert = el.dataset.scale !== 'score';
-  el.innerHTML = Array.from({ length: 11 }, (_, v) =>
+  const from = invert ? 0 : 1;   // 心情 1–10，癮頭／壓力 0–10
+  el.innerHTML = Array.from({ length: 11 - from }, (_, i) => i + from).map((v) =>
     `<button data-v="${v}" style="--c:${scoreColor(v, invert)}" aria-label="${v} 分">${v}</button>`).join('');
 });
 $('#exQuick').innerHTML = [10, 20, 30, 60].map((m) => `<button class="chip" data-m="${m}">${m}</button>`).join('');
@@ -324,7 +338,7 @@ function entryCard(k, e) {
   const note = e.note && e.note.trim() ? `<div class="note">${esc(e.note.trim())}</div>` : '';
   let pm = '';
   if (isPrecise()) {
-    const p = [['心情', e.score], ['癮頭', e.craving], ['壓力', e.stress]].filter(([, v]) => v != null).map(([n, v]) => `${n} ${v}`);
+    const p = [['心情', val10(e)], ['癮頭', e.craving], ['壓力', e.stress]].filter(([, v]) => v != null).map(([n, v]) => `${n} ${v}`);
     if (e.exercise) p.push(`運動 ${e.exercise} 分`);
     if (e.grateful) p.push(`感激：${esc(e.grateful)}`);
     if (p.length) pm = `<span class="pm">${p.join(' · ')}</span>`;
@@ -340,7 +354,7 @@ function entryCard(k, e) {
 
 /* ----- 精確版：週表（參照日記第 2 頁） ----- */
 const WK_ROWS = [
-  ['心情', (e) => e.score != null ? e.score : '', true],
+  ['心情', (e) => val10(e), true],
   ['癮頭', (e) => e.craving != null ? e.craving : ''],
   ['壓力', (e) => e.stress != null ? e.stress : ''],
   ['運動', (e) => e.exercise || ''],
@@ -419,8 +433,8 @@ function renderCalendar() {
   $('#calGrid').innerHTML = h;
 
   if (list.length) {
-    const avg = list.reduce((s, [, e]) => s + e.mood, 0) / list.length;
-    $('#monthSum').textContent = `本月紀錄 ${list.length} 天 · 平均 ${moodOf(Math.round(avg)).emoji} ${avg.toFixed(1)}`;
+    const avg = list.reduce((s, [, e]) => s + val10(e), 0) / list.length;
+    $('#monthSum').textContent = `本月紀錄 ${list.length} 天 · 平均 ${moodOf(scoreToMood(Math.round(avg))).emoji} ${avg.toFixed(1)} / 10`;
     $('#monthList').innerHTML = list.reverse().map(([k, e]) => entryCard(k, e)).join('');
   } else {
     $('#monthSum').textContent = '';
@@ -455,7 +469,7 @@ function renderChart(keys, pts) {
   const W = 340, H = 170, L = 26, R = 10, T = 12, B = 24;
   const n = keys.length;
   const x = (i) => L + (n === 1 ? (W - L - R) / 2 : i * (W - L - R) / (n - 1));
-  const y = (v) => T + (5 - v) * (H - T - B) / 4;
+  const y = (v) => T + (10 - v) * (H - T - B) / 9;   // 1–10 分
   const r = n > 30 ? 2.6 : n > 7 ? 3.6 : 5;
 
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="心情趨勢圖">
@@ -463,11 +477,11 @@ function renderChart(keys, pts) {
       <stop offset="0" style="stop-color:var(--accent);stop-opacity:.28"/>
       <stop offset="1" style="stop-color:var(--accent);stop-opacity:0"/>
     </linearGradient></defs>`;
-  for (let v = 1; v <= 5; v++) {
+  [1, 4, 7, 10].forEach((v) => {
     s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/>`;
-    s += `<text x="0" y="${y(v) + 4}" style="font-size:12px">${moodOf(v).emoji}</text>`;
-  }
-  const P = pts.map((p) => [x(p.i), y(p.e.mood)]);
+    s += `<text class="axis" x="0" y="${y(v) + 4}">${v}</text>`;
+  });
+  const P = pts.map((p) => [x(p.i), y(val10(p.e))]);
   if (P.length > 1) {
     // 平滑曲線（Catmull-Rom 轉 Bézier）
     let d = `M${P[0][0]},${P[0][1]}`;
@@ -501,10 +515,10 @@ function renderStats() {
   for (let i = range - 1; i >= 0; i--) keys.push(addDays(tk, -i));
   const pts = keys.map((k, i) => ({ k, i, e: data.entries[k] })).filter((p) => p.e);
   const n = pts.length;
-  const avg = n ? pts.reduce((s, p) => s + p.e.mood, 0) / n : 0;
+  const avg = n ? pts.reduce((s, p) => s + val10(p.e), 0) / n : 0;
 
   $('#kpis').innerHTML = `
-    <div class="kpi"><div class="v">${n ? `${moodOf(Math.round(avg)).emoji} ${avg.toFixed(1)}` : '—'}</div><div class="k">平均心情</div></div>
+    <div class="kpi"><div class="v">${n ? `${moodOf(scoreToMood(Math.round(avg))).emoji} ${avg.toFixed(1)}<small>/ 10</small>` : '—'}</div><div class="k">平均心情</div></div>
     <div class="kpi"><div class="v">${n}<small>/ ${range}</small></div><div class="k">紀錄天數</div></div>
     <div class="kpi"><div class="v">${currentStreak()}<small>天</small></div><div class="k">連續紀錄</div></div>`;
 
@@ -526,13 +540,13 @@ function renderStats() {
   pts.forEach((p) => p.e.tags.forEach((t) => {
     tagMap[t] = tagMap[t] || { c: 0, s: 0 };
     tagMap[t].c++;
-    tagMap[t].s += p.e.mood;
+    tagMap[t].s += val10(p.e);
   }));
   const tagList = Object.entries(tagMap).sort((a, b) => b[1].c - a[1].c).slice(0, 8);
   $('#tagStats').innerHTML = tagList.length
     ? tagList.map(([t, v]) => {
       const a = v.s / v.c;
-      return `<div class="tag-row"><span class="name">${esc(t)}</span><span class="meta">${v.c} 次 · 平均 ${a.toFixed(1)}</span><span>${moodOf(Math.round(a)).emoji}</span></div>`;
+      return `<div class="tag-row"><span class="name">${esc(t)}</span><span class="meta">${v.c} 次 · 平均 ${a.toFixed(1)} / 10</span><span>${moodOf(scoreToMood(Math.round(a))).emoji}</span></div>`;
     }).join('')
     : '<div class="empty">為紀錄加上標籤，就能看到哪些事情影響你的心情</div>';
 }
@@ -545,8 +559,10 @@ const P_SERIES = [
 ];
 
 function renderPreciseStats(keys, pts) {
+  // 心情用兩版共用的 1–10 分（簡略版的紀錄也算進來）；癮頭／壓力只算有填的天
+  const get = (e, f) => (f === 'score' ? val10(e) : e[f]);
   const avgOf = (f) => {
-    const v = pts.filter((p) => p.e[f] != null).map((p) => p.e[f]);
+    const v = pts.filter((p) => get(p.e, f) != null).map((p) => get(p.e, f));
     return v.length ? (v.reduce((s, x) => s + x, 0) / v.length).toFixed(1) : '—';
   };
   const exDays = pts.filter((p) => p.e.exercise > 0);
@@ -568,7 +584,7 @@ function renderPreciseStats(keys, pts) {
     s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="0" y="${y(v) + 4}">${v}</text>`;
   });
   P_SERIES.forEach(([f, , c]) => {
-    const P = pts.filter((p) => p.e[f] != null).map((p) => [x(p.i), y(p.e[f])]);
+    const P = pts.filter((p) => get(p.e, f) != null).map((p) => [x(p.i), y(get(p.e, f))]);
     if (P.length > 1) s += `<path d="M${P.map((p) => p.join(',')).join(' L')}" style="stroke:${c};stroke-width:2;fill:none"/>`;
     P.forEach(([cx, cy]) => { s += `<circle cx="${cx}" cy="${cy}" r="${n > 30 ? 2 : 3}" style="fill:${c};stroke:none"/>`; });
   });
@@ -621,7 +637,7 @@ $('#themeGrid').addEventListener('click', (ev) => {
 /* ----- 版面切換 ----- */
 const LAYOUT_DESC = {
   simple: '簡略版：選 5 種心情、標籤和日記，快速記錄。',
-  precise: '精確版：參照《情緒癮頭日記》，記錄 0–10 分的心情／癮頭／壓力指數、運動時間、溫柔的事、感激的人事物與自己的優點，日曆頁另有週表與本週目標。',
+  precise: '精確版：參照《情緒癮頭日記》，記錄 1–10 分的心情指數、0–10 分的癮頭／壓力指數、運動時間、溫柔的事、感激的人事物與自己的優點，日曆頁另有週表與本週目標。',
 };
 function renderLayout() {
   const l = isPrecise() ? 'precise' : 'simple';
@@ -651,7 +667,7 @@ function renderSettings() {
   $('#exportSub').textContent = ago < 0 ? '尚未備份過 · 存成 JSON 檔，可存到「檔案」或 iCloud'
     : `上次備份：${ago === 0 ? '今天' : `${ago} 天前`}`;
   const total = Object.keys(data.entries).length;
-  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.17`;
+  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.18`;
 }
 
 $('#customTags').addEventListener('click', (ev) => {
