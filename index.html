@@ -104,10 +104,11 @@
         <div class="card-title" id="noteTitle">寫點什麼</div>
         <textarea id="note" rows="4" placeholder="記下今天的小事、感受或想法…"></textarea>
       </div>
-      <div class="save-row">
-        <span id="saveStatus" class="save-status"></span>
-        <button id="deleteEntry" class="text-btn danger" hidden>刪除這天</button>
-      </div>
+    </div>
+    <!-- 放在 #details 外面：還沒選心情時 #details 會變淡，這行提示仍要清楚 -->
+    <div class="save-row">
+      <span id="saveStatus" class="save-status"></span>
+      <button id="deleteEntry" class="text-btn danger" hidden>刪除這天</button>
     </div>
   </section>
 

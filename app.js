@@ -124,7 +124,7 @@ function toast(msg) {
 
 /* ================= 今天 ================= */
 $('#moods').innerHTML = MOODS.map((m) => `
-  <button class="mood" data-v="${m.v}" style="--c:var(--m${m.v})" aria-pressed="false" aria-label="${m.label}">
+  <button class="mood" data-v="${m.v}" style="--c:var(--m${m.v})" aria-pressed="false" aria-label="${m.label}，${moodToScore(m.v)} 分">
     <span class="face">${m.emoji}</span><span class="lbl">${m.label}</span><span class="pts">${moodToScore(m.v)} 分</span>
   </button>`).join('');
 
@@ -524,19 +524,23 @@ function renderStats() {
     <div class="kpi"><div class="v">${n}<small>/ ${range}</small></div><div class="k">紀錄天數</div></div>
     <div class="kpi"><div class="v">${currentStreak()}<small>天</small></div><div class="k">連續紀錄</div></div>`;
 
-  $('#chart').innerHTML = renderChart(keys, pts);
+  // 趨勢圖從範圍內第一筆紀錄開始畫，紀錄少時不會全擠在右邊
+  const first = n ? pts[0].i : 0;
+  const cKeys = keys.slice(first);
+  const cPts = pts.map((p) => ({ ...p, i: p.i - first }));
+  $('#chart').innerHTML = renderChart(cKeys, cPts);
 
   const cnt = [0, 0, 0, 0, 0];
   pts.forEach((p) => cnt[p.e.mood - 1]++);
   const max = Math.max(1, ...cnt);
   $('#dist').innerHTML = [...MOODS].reverse().map((m) => `
     <div class="dist-row" style="--c:var(--m${m.v})">
-      <span>${m.emoji}</span><span>${m.label}</span>
+      <span>${m.emoji}</span><span>${m.label}<small>${moodToScore(m.v) - 1}–${moodToScore(m.v)} 分</small></span>
       <span class="bar"><i style="width:${(cnt[m.v - 1] / max) * 100}%"></i></span>
       <span class="cnt">${cnt[m.v - 1]}</span>
     </div>`).join('');
 
-  if (isPrecise()) renderPreciseStats(keys, pts);
+  if (isPrecise()) renderPreciseStats(cKeys, cPts);
 
   const tagMap = {};
   pts.forEach((p) => p.e.tags.forEach((t) => {
@@ -559,6 +563,7 @@ const P_SERIES = [
   ['craving', '癮頭', 'var(--c-craving)'],
   ['stress', '壓力', 'var(--c-stress)'],
 ];
+const hiddenSeries = new Set();   // 圖例點掉的線（只在這次開啟有效）
 
 function renderPreciseStats(keys, pts) {
   // 心情用兩版共用的 1–10 分（簡略版的紀錄也算進來）；癮頭／壓力只算有填的天
@@ -570,7 +575,8 @@ function renderPreciseStats(keys, pts) {
   const exDays = pts.filter((p) => p.e.exercise > 0);
   const exMin = exDays.reduce((s, p) => s + p.e.exercise, 0);
   const cnt = (f) => pts.filter((p) => p.e[f]).length;
-  const k = (v, label, unit = '') => `<div><b>${v}${unit ? `<small> ${unit}</small>` : ''}</b><span>${label}</span></div>`;
+  // 沒有資料（—）時不顯示單位，與上方「平均心情」一致
+  const k = (v, label, unit = '') => `<div><b>${v}${unit && v !== '—' ? `<small> ${unit}</small>` : ''}</b><span>${label}</span></div>`;
   $('#pkpis').innerHTML =
     k(avgOf('score'), '平均心情', '/10') + k(avgOf('craving'), '平均癮頭', '/10') + k(avgOf('stress'), '平均壓力', '/10') +
     k(exMin, `運動 ${exDays.length} 天`, '分') + k(cnt('kind'), '溫柔的事', '天') + k(cnt('grateful'), '感激紀錄', '天');
@@ -586,14 +592,27 @@ function renderPreciseStats(keys, pts) {
     s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="0" y="${y(v) + 4}">${v}</text>`;
   });
   P_SERIES.forEach(([f, , c]) => {
+    if (hiddenSeries.has(f)) return;
     const P = pts.filter((p) => get(p.e, f) != null).map((p) => [x(p.i), y(get(p.e, f))]);
     if (P.length > 1) s += `<path d="M${P.map((p) => p.join(',')).join(' L')}" style="stroke:${c};stroke-width:2.5;fill:none;stroke-linejoin:round"/>`;
     P.forEach(([cx, cy]) => { s += `<circle cx="${cx}" cy="${cy}" r="${n > 30 ? 2.5 : 3.5}" style="fill:${c};stroke:var(--surface);stroke-width:1"/>`; });
   });
   s += `<text class="axis" x="${x(0)}" y="${H - 4}">${shortDate(keys[0])}</text><text class="axis" x="${x(n - 1)}" y="${H - 4}" text-anchor="end">${shortDate(keys[n - 1])}</text>`;
+  // 圖例可點：隱藏／顯示該條線，線太多時可以一次只看一條
   $('#pchart').innerHTML = s + '</svg><div class="legend">' +
-    P_SERIES.map(([, name, c]) => `<span><i style="background:${c}"></i>${name}</span>`).join('') + '</div>';
+    P_SERIES.map(([f, name, c]) => {
+      const off = hiddenSeries.has(f);
+      return `<button class="${off ? 'off' : ''}" data-f="${f}" aria-pressed="${!off}" aria-label="${off ? '顯示' : '隱藏'}${name}線"><i style="background:${c}"></i>${name}</button>`;
+    }).join('') + '</div><div class="legend-hint">點上面的名稱可隱藏／顯示該條線</div>';
 }
+
+$('#pchart').addEventListener('click', (ev) => {
+  const b = ev.target.closest('.legend [data-f]');
+  if (!b) return;
+  const f = b.dataset.f;
+  if (hiddenSeries.has(f)) hiddenSeries.delete(f); else hiddenSeries.add(f);
+  renderStats();
+});
 
 $('#rangeSeg').addEventListener('click', (ev) => {
   const b = ev.target.closest('button');
@@ -669,7 +688,7 @@ function renderSettings() {
   $('#exportSub').textContent = ago < 0 ? '尚未備份過 · 存成 JSON 檔，可存到「檔案」或 iCloud'
     : `上次備份：${ago === 0 ? '今天' : `${ago} 天前`}`;
   const total = Object.keys(data.entries).length;
-  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.20`;
+  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.21`;
 }
 
 $('#customTags').addEventListener('click', (ev) => {
