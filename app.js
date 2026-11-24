@@ -16,13 +16,13 @@ const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
 
 // 精確版（參照《情緒癮頭日記》）的欄位；舊資料沒有這些欄位也能正常使用
-const STRENGTHS = ['體貼', '溫暖', '獨立', '敏感', '有覺察力', '負責', '勇敢'];
+const STRENGTHS = ['體貼', '溫暖', '獨立', '敏感', '有覺察力', '負責', '勇敢', '創意', '幽默', '大方', '耐心', '包容', '毅力'];
 const SCALES = ['score', 'craving', 'stress'];   // 0–10 分
 const TEXTS = ['stressNote', 'kind', 'grateful'];
 // 心情指數 0–10 與 5 級心情互換：0–1→1、2–3→2、4–6→3、7–8→4、9–10→5
 const scoreToMood = (s) => Math.min(5, Math.round(s / 2.5) + 1);
 const moodToScore = (m) => [0, 3, 5, 8, 10][m - 1];
-const blank = () => ({ entries: {}, customTags: [], weeks: {}, habit: '' });
+const blank = () => ({ entries: {}, customTags: [], customStrengths: [], weeks: {}, habit: '' });
 
 function load() {
   try {
@@ -31,6 +31,7 @@ function load() {
       return {
         entries: d.entries,
         customTags: Array.isArray(d.customTags) ? d.customTags : [],
+        customStrengths: Array.isArray(d.customStrengths) ? d.customStrengths : [],
         weeks: d.weeks && typeof d.weeks === 'object' ? d.weeks : {},
         habit: typeof d.habit === 'string' ? d.habit : '',
       };
@@ -73,6 +74,7 @@ const addDays = (k, n) => { const d = parseKey(k); d.setDate(d.getDate() + n); r
 const startOfMonth = (d) => new Date(d.getFullYear(), d.getMonth(), 1);
 const moodOf = (v) => MOODS[v - 1];
 const allTags = () => [...DEFAULT_TAGS, ...data.customTags];
+const allStrengths = () => [...STRENGTHS, ...data.customStrengths];
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmtTime = (t) => { const d = new Date(t); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 const shortDate = (k) => { const d = parseKey(k); return `${d.getMonth() + 1}/${d.getDate()}`; };
@@ -171,8 +173,10 @@ function renderPrecise(e, isToday) {
   const habit = $('#habit');
   if (document.activeElement !== habit) habit.value = data.habit || '';
   const st = new Set(e && e.strengths ? e.strengths : []);
-  $('#strengths').innerHTML = STRENGTHS.map((s) =>
-    `<button class="chip${st.has(s) ? ' on' : ''}" data-s="${s}">${s}</button>`).join('');
+  // 已選但後來從清單移除的自訂優點仍顯示，避免舊紀錄看不到
+  $('#strengths').innerHTML = [...new Set([...allStrengths(), ...st])].map((s) =>
+    `<button class="chip${st.has(s) ? ' on' : ''}" data-s="${esc(s)}">${esc(s)}</button>`).join('')
+    + '<button class="chip add" data-add="1">＋ 自訂</button>';
   const w = data.weeks[mondayOf(curDate)];
   const parts = w ? [['本週小目標', w.goal], ['獎勵自己', w.reward]].filter(([, v]) => v) : [];
   $('#weekGoal').hidden = !parts.length;
@@ -209,7 +213,12 @@ $('#details').addEventListener('click', (ev) => {
   const sc = ev.target.closest('#strengths .chip');
   if (sc) {
     const s = new Set(e.strengths || []);
-    if (s.has(sc.dataset.s)) s.delete(sc.dataset.s); else s.add(sc.dataset.s);
+    if (sc.dataset.add) {
+      const name = (prompt('新增自己的優點（最多 10 個字）') || '').trim().slice(0, 10);
+      if (!name) return;
+      if (!allStrengths().includes(name)) data.customStrengths.push(name);
+      s.add(name);
+    } else if (s.has(sc.dataset.s)) s.delete(sc.dataset.s); else s.add(sc.dataset.s);
     e.strengths = [...s];
     return touch();
   }
@@ -634,12 +643,15 @@ function renderSettings() {
   $('#customTags').innerHTML = data.customTags.length
     ? data.customTags.map((t, i) => `<button class="chip" data-i="${i}">${esc(t)}<span class="x">✕</span></button>`).join('')
     : '<span class="note-text" style="padding:0">在「今天」頁按「＋ 自訂」即可新增標籤</span>';
+  $('#customStrengths').innerHTML = data.customStrengths.length
+    ? data.customStrengths.map((t, i) => `<button class="chip" data-i="${i}">${esc(t)}<span class="x">✕</span></button>`).join('')
+    : '<span class="note-text" style="padding:0">在「今天」頁「認出自己的優點」按「＋ 自訂」即可新增</span>';
   const last = getNum(BACKUP_KEY);
   const ago = last ? Math.floor((Date.now() - last) / DAY_MS) : -1;
   $('#exportSub').textContent = ago < 0 ? '尚未備份過 · 存成 JSON 檔，可存到「檔案」或 iCloud'
     : `上次備份：${ago === 0 ? '今天' : `${ago} 天前`}`;
   const total = Object.keys(data.entries).length;
-  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.14`;
+  $('#statsLine').textContent = `目前共有 ${total} 筆紀錄 · 版本 1.15`;
 }
 
 $('#customTags').addEventListener('click', (ev) => {
@@ -648,6 +660,16 @@ $('#customTags').addEventListener('click', (ev) => {
   const t = data.customTags[+b.dataset.i];
   if (!confirm(`移除標籤「${t}」？（過去的紀錄仍會保留此標籤）`)) return;
   data.customTags.splice(+b.dataset.i, 1);
+  persist();
+  renderSettings();
+});
+
+$('#customStrengths').addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-i]');
+  if (!b) return;
+  const t = data.customStrengths[+b.dataset.i];
+  if (!confirm(`移除優點「${t}」？（過去的紀錄仍會保留）`)) return;
+  data.customStrengths.splice(+b.dataset.i, 1);
   persist();
   renderSettings();
 });
@@ -732,6 +754,9 @@ $('#importFile').addEventListener('change', async (ev) => {
     }
     if (Array.isArray(d.customTags)) {
       d.customTags.map(String).forEach((t) => { if (!allTags().includes(t)) data.customTags.push(t); });
+    }
+    if (Array.isArray(d.customStrengths)) {
+      d.customStrengths.map(String).forEach((t) => { if (!allStrengths().includes(t)) data.customStrengths.push(t); });
     }
     if (d.weeks && typeof d.weeks === 'object') {
       for (const [k, w] of Object.entries(d.weeks)) {
